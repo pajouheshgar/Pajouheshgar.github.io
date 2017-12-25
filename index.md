@@ -3,6 +3,8 @@ layout: default
 ---
 ## About me
 I'm a facinating boy with a genius mind and i have a sexy and lovely girlfriend named Hanieh <3
+
+## Sex
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
 [Link to another page](another-page).
