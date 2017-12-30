@@ -10,7 +10,8 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <!--[if lte IE 8]>
-    <script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <script src="assets/js/ie/html5shiv.js"></script>
+    <![endif]-->
     <link rel="stylesheet" href="assets/css/main.css"/>
     <!--[if lte IE 8]>
     <link rel="stylesheet" href="assets/css/ie8.css"/><![endif]-->
@@ -86,21 +87,24 @@
     <!-- Three -->
     <section id="three">
         <h2>Contact Me</h2>
-        <p>If you have any idea, critique or anything you want do not hesitate to contact me :D</p>
+        <p>If you have any idea, critique or anything you want tell me, do not hesitate to contact me :D</p>
         <div class="row">
             <div class="8u 12u$(small)">
-                <form method="post" action="#">
+                <form method="post" action="php/ContactMe.php" name="ContactMeForm" id="ContactMeForm">
                     <div class="row uniform 50%">
-                        <div class="6u 12u$(xsmall)"><input type="text" name="name" id="name" placeholder="Name"/></div>
-                        <div class="6u$ 12u$(xsmall)"><input type="email" name="email" id="email" placeholder="Email"/>
+                        <div class="6u 12u$(xsmall)"><input type="text" name="Name" id="Name" placeholder="Name"/></div>
+                        <div class="6u$ 12u$(xsmall)"><input type="email" name="Email" id="Email" placeholder="Email"/>
                         </div>
-                        <div class="12u$"><textarea name="message" id="message" placeholder="Message"
+                        <div class="12u$"><textarea name="Message" id="message" placeholder="Message"
                                                     rows="4"></textarea></div>
+
+                        <div class="6u 12u$(xsmall)">
+                            <ul class="actions">
+                                <li><input type="submit" value="Send Message"/></li>
+                            </ul>
+                        </div>
                     </div>
                 </form>
-                <ul class="actions">
-                    <li><input type="submit" value="Send Message"/></li>
-                </ul>
             </div>
             <div class="4u$ 12u$(small)">
                 <ul class="labeled-icons">
@@ -122,6 +126,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- Four -->
     <!--
@@ -462,6 +467,8 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 </footer>
 
 <!-- Scripts -->
+<script language="JavaScript" src="assets/js/ie/gen_validatorv4.js" type="text/javascript" xml:space="preserve"></script>
+
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/js/jquery.poptrox.min.js"></script>
 <script src="assets/js/skel.min.js"></script>
@@ -469,6 +476,16 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 <!--[if lte IE 8]>
 <script src="assets/js/ie/respond.min.js"></script><![endif]-->
 <script src="assets/js/main.js"></script>
+
+<script language="JavaScript" type="text/javascript" xml:space="preserve">
+var frmvalidator  = new Validator("ContactMeForm");
+frmvalidator.addValidation("Name","req","Please provide your name");
+
+frmvalidator.addValidation("Email","req","Please provide your email");
+frmvalidator.addValidation("Email","email",
+  "Please enter a valid email address");
+frmvalidator.addValidation("Message","req","Please provide a message");
+</script>
 
 </body>
 </html>
