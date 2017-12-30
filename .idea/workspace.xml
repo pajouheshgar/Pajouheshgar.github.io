@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/another-page.md" afterPath="" />
       <change beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,11 +18,13 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="377">
-              <caret line="72" column="75" lean-forward="false" selection-start-line="72" selection-start-column="75" selection-end-line="72" selection-end-column="75" />
+            <state relative-caret-position="170">
+              <caret line="68" column="43" lean-forward="false" selection-start-line="68" selection-start-column="43" selection-end-line="68" selection-end-column="43" />
               <folding>
                 <element signature="n#style#0;n#a#0;n#center#0;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="e#6223#24842#0" expanded="false" />
+                <element signature="n#style#0;n#a#0;n#h1#0;n#center#1;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#a#0;n#h3#0;n#center#0;n#article#0;n#div#0;n#section#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="e#6259#24878#0" expanded="false" />
                 <element signature="n#style#0;n#a#0;n#li#0;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#a#0;n#li#1;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#a#0;n#li#2;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
@@ -56,12 +59,16 @@
       <find>icon fa-</find>
       <find>icon fa-twitter</find>
       <find>twitter</find>
-      <find>avatar</find>
       <find>image avatar</find>
       <find>fa fa</find>
       <find>avatar.</find>
       <find>recent</find>
       <find>Ipsum lorem dolor</find>
+      <find>avatar</find>
+      <find>centering</find>
+      <find>center</find>
+      <find>centerin</find>
+      <find>sharif</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -197,7 +204,9 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#style#0;n#a#0;n#center#0;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="e#6223#24842#0" expanded="false" />
+            <element signature="n#style#0;n#a#0;n#h1#0;n#center#1;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#h3#0;n#center#0;n#article#0;n#div#0;n#section#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#6259#24878#0" expanded="false" />
             <element signature="n#style#0;n#a#0;n#li#0;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#1;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#2;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
@@ -223,7 +232,9 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#style#0;n#a#0;n#center#0;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="e#6223#24842#0" expanded="false" />
+            <element signature="n#style#0;n#a#0;n#h1#0;n#center#1;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#h3#0;n#center#0;n#article#0;n#div#0;n#section#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#6259#24878#0" expanded="false" />
             <element signature="n#style#0;n#a#0;n#li#0;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#1;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#2;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
@@ -351,11 +362,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="377">
-          <caret line="72" column="75" lean-forward="false" selection-start-line="72" selection-start-column="75" selection-end-line="72" selection-end-column="75" />
+        <state relative-caret-position="170">
+          <caret line="68" column="43" lean-forward="false" selection-start-line="68" selection-start-column="43" selection-end-line="68" selection-end-column="43" />
           <folding>
             <element signature="n#style#0;n#a#0;n#center#0;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-            <element signature="e#6223#24842#0" expanded="false" />
+            <element signature="n#style#0;n#a#0;n#h1#0;n#center#1;n#div#0;n#header#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#a#0;n#h3#0;n#center#0;n#article#0;n#div#0;n#section#1;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="e#6259#24878#0" expanded="false" />
             <element signature="n#style#0;n#a#0;n#li#0;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#1;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#a#0;n#li#2;n#ul#0;n#center#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
