@@ -88,21 +88,22 @@ a {
 
 .page-header {
   //color: $header-heading-color;
-  text-align: center;
   //background-color: $header-bg-color;
-  background-color: #ffff0f;
   //background-image: linear-gradient(120deg, $header-bg-color-secondary, $header-bg-color);
-  background-image: url("images/bg.jpg");
-  background-position: top left;
-  background-repeat: no-repeat;
-  background-size: auto;
-  color: rgba(255, 255, 255, 0.5);
-  left: 0;
-  top: 0;
-  //padding: 8em 4em;
-  position: fixed;
-  text-align: center;
-  width: 100%;
+  background-color: #1f1815;
+    background-attachment: scroll,								fixed;
+    background-image: url("images/overlay.png"), url("images/bg.jpg");
+    background-position: top center,							top center;
+    background-repeat: repeat,								no-repeat;
+    background-size: auto,								auto 100%;
+    color: rgba(255, 255, 255, 0.5);
+    height: 30%;
+    left: 0;
+    padding: 8em 4em;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    width: 100%;
 
   @include large {
     padding: 5rem 6rem;
