@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss" afterPath="$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -34,21 +35,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="jekyll-theme-cayman.scss" pinned="false" current-in-tab="true">
+      <file leaf-file-name="jekyll-theme-cayman.scss" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="313">
-              <caret line="98" column="9" lean-forward="false" selection-start-line="98" selection-start-column="9" selection-end-line="98" selection-end-column="9" />
+            <state relative-caret-position="418">
+              <caret line="103" column="3" lean-forward="false" selection-start-line="103" selection-start-column="3" selection-end-line="103" selection-end-column="3" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.css" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.css" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/assets/css/main.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="2491" column="8" lean-forward="true" selection-start-line="2491" selection-start-column="8" selection-end-line="2492" selection-end-column="24" />
+            <state relative-caret-position="144">
+              <caret line="2486" column="22" lean-forward="false" selection-start-line="2486" selection-start-column="22" selection-end-line="2486" selection-end-column="22" />
               <folding />
             </state>
           </provider>
@@ -438,18 +439,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/assets/css/main.css">
+    <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="2491" column="8" lean-forward="true" selection-start-line="2491" selection-start-column="8" selection-end-line="2492" selection-end-column="24" />
+        <state relative-caret-position="418">
+          <caret line="103" column="3" lean-forward="false" selection-start-line="103" selection-start-column="3" selection-end-line="103" selection-end-column="3" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
+    <entry file="file://$PROJECT_DIR$/assets/css/main.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="98" column="9" lean-forward="false" selection-start-line="98" selection-start-column="9" selection-end-line="98" selection-end-column="9" />
+        <state relative-caret-position="144">
+          <caret line="2486" column="22" lean-forward="false" selection-start-line="2486" selection-start-column="22" selection-end-line="2486" selection-end-column="22" />
           <folding />
         </state>
       </provider>
