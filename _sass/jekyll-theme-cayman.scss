@@ -95,8 +95,8 @@ a {
   background-position: top center;
   background-repeat: no-repeat;
   background-size: contain;
-  min-width: 100%;
-  height: auto;
+  height: 100%;
+  width: 100%;
 
   @include large {
     padding: 5rem 6rem;
