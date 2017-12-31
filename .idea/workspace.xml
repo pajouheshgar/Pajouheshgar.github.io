@@ -4,6 +4,7 @@
     <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss" afterPath="$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss" />
+      <change beforePath="$PROJECT_DIR$/_sass/variables.scss" afterPath="$PROJECT_DIR$/_sass/variables.scss" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -35,21 +36,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.css" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/assets/css/main.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="2963" column="28" lean-forward="true" selection-start-line="2951" selection-start-column="16" selection-end-line="2963" selection-end-column="28" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="jekyll-theme-cayman.scss" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="186">
-              <caret line="92" column="63" lean-forward="false" selection-start-line="92" selection-start-column="63" selection-end-line="92" selection-end-column="63" />
+            <state relative-caret-position="271">
+              <caret line="93" column="42" lean-forward="false" selection-start-line="93" selection-start-column="42" selection-end-line="93" selection-end-column="42" />
               <folding />
             </state>
           </provider>
@@ -58,8 +49,8 @@
       <file leaf-file-name="variables.scss" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/_sass/variables.scss">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
-              <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="7" selection-end-column="45" />
+            <state relative-caret-position="103">
+              <caret line="8" column="17" lean-forward="true" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -90,11 +81,12 @@
       <find>persian</find>
       <find>page-header</find>
       <find>inner</find>
-      <find>header</find>
       <find>#header</find>
       <find>bg.jpg</find>
       <find>bg</find>
       <find>background-image</find>
+      <find>header</find>
+      <find>backgrou</find>
       <find>bg.</find>
     </findStrings>
   </component>
@@ -110,6 +102,7 @@
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/_layouts/default.html" />
         <option value="$PROJECT_DIR$/assets/css/main.css" />
+        <option value="$PROJECT_DIR$/_sass/variables.scss" />
         <option value="$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss" />
       </list>
     </option>
@@ -363,14 +356,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/_sass/rouge-github.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/assets/js/ie/html5shiv.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="207">
@@ -378,14 +363,6 @@
           <folding>
             <element signature="e#0#32778#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/_sass/normalize.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1974">
-          <caret line="38" column="6" lean-forward="false" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -397,10 +374,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/_sass/variables.scss">
+    <entry file="file://$PROJECT_DIR$/_sass/normalize.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="7" selection-end-column="45" />
+        <state relative-caret-position="207">
+          <caret line="144" column="10" lean-forward="false" selection-start-line="144" selection-start-column="10" selection-end-line="144" selection-end-column="10" />
           <folding />
         </state>
       </provider>
@@ -409,6 +386,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
           <caret line="10" column="9" lean-forward="true" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/assets/css/main.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="2954" column="34" lean-forward="true" selection-start-line="2954" selection-start-column="34" selection-end-line="2954" selection-end-column="34" />
           <folding />
         </state>
       </provider>
@@ -432,18 +417,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/assets/css/main.css">
+    <entry file="file://$PROJECT_DIR$/_sass/rouge-github.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="2963" column="28" lean-forward="true" selection-start-line="2951" selection-start-column="16" selection-end-line="2963" selection-end-column="28" />
+        <state relative-caret-position="-3656">
+          <caret line="15" column="17" lean-forward="true" selection-start-line="15" selection-start-column="17" selection-end-line="15" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/_sass/variables.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="103">
+          <caret line="8" column="17" lean-forward="true" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="92" column="63" lean-forward="false" selection-start-line="92" selection-start-column="63" selection-end-line="92" selection-end-column="63" />
+        <state relative-caret-position="271">
+          <caret line="93" column="42" lean-forward="false" selection-start-line="93" selection-start-column="42" selection-end-line="93" selection-end-column="42" />
           <folding />
         </state>
       </provider>
