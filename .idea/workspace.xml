@@ -39,7 +39,7 @@
         <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="229">
-              <caret line="93" column="68" lean-forward="true" selection-start-line="93" selection-start-column="68" selection-end-line="93" selection-end-column="68" />
+              <caret line="93" column="2" lean-forward="false" selection-start-line="93" selection-start-column="2" selection-end-line="93" selection-end-column="2" />
               <folding />
             </state>
           </provider>
@@ -48,8 +48,8 @@
       <file leaf-file-name="main.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/assets/css/main.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="2481" column="8" lean-forward="true" selection-start-line="2481" selection-start-column="8" selection-end-line="2495" selection-end-column="19" />
+            <state relative-caret-position="207">
+              <caret line="2483" column="56" lean-forward="false" selection-start-line="2483" selection-start-column="0" selection-end-line="2484" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -441,8 +441,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/assets/css/main.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="2481" column="8" lean-forward="true" selection-start-line="2481" selection-start-column="8" selection-end-line="2495" selection-end-column="19" />
+        <state relative-caret-position="207">
+          <caret line="2483" column="56" lean-forward="false" selection-start-line="2483" selection-start-column="0" selection-end-line="2484" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -450,7 +450,7 @@
     <entry file="file://$PROJECT_DIR$/_sass/jekyll-theme-cayman.scss">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="229">
-          <caret line="93" column="68" lean-forward="true" selection-start-line="93" selection-start-column="68" selection-end-line="93" selection-end-column="68" />
+          <caret line="93" column="2" lean-forward="false" selection-start-line="93" selection-start-column="2" selection-end-line="93" selection-end-column="2" />
           <folding />
         </state>
       </provider>
