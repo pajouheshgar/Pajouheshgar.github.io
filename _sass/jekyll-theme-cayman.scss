@@ -87,23 +87,11 @@ a {
 }
 
 .page-header {
-  //color: $header-heading-color;
-  //background-color: $header-bg-color;
+  color: $header-heading-color;
+  text-align: center;
+  background-color: $header-bg-color;
   //background-image: linear-gradient(120deg, $header-bg-color-secondary, $header-bg-color);
-  background-color: #1f1815;
-    background-attachment: scroll,								fixed;
-    background-image: url("images/overlay.png"), url("images/bg.jpg");
-    background-position: top center,							top center;
-    background-repeat: repeat,								no-repeat;
-    background-size: auto,								auto 100%;
-    color: rgba(255, 255, 255, 0.5);
-    height: 30%;
-    left: 0;
-    padding: 8em 4em;
-    position: fixed;
-    text-align: center;
-    top: 0;
-    width: 100%;
+  background-image: url("images/overlay.png"), url("images/bg.jpg");
 
   @include large {
     padding: 5rem 6rem;
