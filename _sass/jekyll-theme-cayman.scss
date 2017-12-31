@@ -95,7 +95,7 @@ a {
   background-position: top center, top center;
   background-repeat: repeat, no-repeat;
   background-size: auto, auto 100%;
-  width: 100%;
+  width: 100%, 100%;
 
 
   @include large {
