@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/Posts/Dimensionality_Reduction_Part_I.md" afterPath="$PROJECT_DIR$/Posts/Dimensionality_Reduction_Part_I.md" />
-    </list>
+    <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -58,7 +56,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Dimensionality_Reduction_Part_I.md" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Dimensionality_Reduction_Part_I.md" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Posts/Dimensionality_Reduction_Part_I.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
@@ -71,12 +69,20 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="main.css" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/assets/css/main.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2434">
+              <caret line="1991" column="14" lean-forward="false" selection-start-line="1991" selection-start-column="9" selection-end-line="1991" selection-end-column="14" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Magna sed consequat tempus</find>
-      <find>Learn More</find>
       <find>I am Strata</find>
       <find>icon</find>
       <find>icon fa-</find>
@@ -105,6 +111,8 @@
       <find>r-image</find>
       <find>bg</find>
       <find>e.pajou</find>
+      <find>image fit thumb</find>
+      <find>image</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -154,6 +162,17 @@
             <path>
               <item name="Pajouheshgar.github.io" type="b2602c69:ProjectViewProjectNode" />
               <item name="Pajouheshgar.github.io" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Pajouheshgar.github.io" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Pajouheshgar.github.io" type="462c0819:PsiDirectoryNode" />
+              <item name="assets" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Pajouheshgar.github.io" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Pajouheshgar.github.io" type="462c0819:PsiDirectoryNode" />
+              <item name="assets" type="462c0819:PsiDirectoryNode" />
+              <item name="css" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Pajouheshgar.github.io" type="b2602c69:ProjectViewProjectNode" />
@@ -344,6 +363,28 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Posts/Persian_Category_Detection.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="0">
+            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+            <folding />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Posts/Dimensionality_Reduction_Part_I.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="63">
+            <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+            <folding />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/_layouts/default.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
@@ -372,25 +413,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Posts/Persian_Category_Detection.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="0">
-            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-            <folding />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Posts/Dimensionality_Reduction_Part_I.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="63">
-            <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-            <folding />
-          </first_editor>
-          <second_editor />
+    <entry file="file://$PROJECT_DIR$/assets/css/main.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2434">
+          <caret line="1991" column="14" lean-forward="false" selection-start-line="1991" selection-start-column="9" selection-end-line="1991" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
