@@ -163,6 +163,31 @@ We see that mixture distribution
 It's good to notice that above treatment was something like a single step EM algorithm!
  (But in reverse order I think!)
 
+Now how to achieve a similarity measure in range [0, 1] ? The idea is to use
+CDF of estimated distribution.
+If ![variables](http://www.sciweavers.org/upload/Tex2Img_1519425971/render.png) and
+![variables](http://www.sciweavers.org/upload/Tex2Img_1519426031/render.png) are two
+transformed image then we had estimated distribution of ![distance](http://www.sciweavers.org/upload/Tex2Img_1519426205/render.png)
+with mixture of a Normal and a Skew Normal distribution. Thus we can use (1 - mixture CDF)
+to represent the similarity measure between two image. 
+
+![CDF meaning](http://www.sciweavers.org/upload/Tex2Img_1519426671/render.png)
+ 
+So if two transformed images are very close together then CDF function is close to zero
+at the point regarding to images distance. Thus (1 - CDF) is close to one and we can
+use it as similarity measure.
+
+###### Example:
+I want to find the most similar images to the belt image below.
+![belt](belt.jpg)
+
+finding 4 most similar images (in terms of distance in FC2 space) and calculating
+similarity measure leads to the following figure.
+
+![similarity](similarity.png)
+
+Note that similarity between an image and itself is not equal to one. It is because 
+the CDF function is not equal to zero at zero distance (Because Normal and Skew Normal distributions are positive at every point.)
 
 
 [back](./)
