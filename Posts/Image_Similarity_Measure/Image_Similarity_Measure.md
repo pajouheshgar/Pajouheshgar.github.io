@@ -179,6 +179,7 @@ use it as similarity measure.
 
 ###### Example:
 I want to find the most similar images to the belt image below.
+
 ![belt](belt.jpg)
 
 finding 4 most similar images (in terms of distance in FC2 space) and calculating
