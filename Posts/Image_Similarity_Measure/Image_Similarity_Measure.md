@@ -8,10 +8,13 @@ layout: default
 Below is illustration of some duplicate advertisements which should be detected. (from now on I will use __item__ instead of __advertisement__)
 The task is completely unsupervised and we have no labeled data of any similar items. 
 
+<center>
+
 An Item | A Duplicate
 ------------ | -------------
 ![Image of shoe](shoe.jpg) | ![Duplicate image of shoe](shoe_fc2.jpg)
 ![Image of hair](hair.jpg) | ![Duplicate Image of hair](hair_fc2.jpg)
+</center>
 
 Existence of similar items and showing them in the
 same time to the user will harm advertising system's quality and
@@ -25,10 +28,13 @@ pool results because by changing point of view, objects position, and image cont
 the L2 distance will change significantly.
 Below figures shows the closest image w.r.t Euclidean distance between two image.
 
+<center>
+
 An Item | Closest Item
 ------------ | -------------
 ![Image of shoe](shoe.jpg) | ![closest image to shoe](shoe_fc2.jpg)
 ![Image of hair](hair.jpg) | ![closest image to hair](hair_primary.jpg)
+</center>
 
 We see that L2 distance between images can produce rubbish results!
 As you see closest image to top view of a head is a bride and broom
@@ -44,13 +50,19 @@ This network was trained on ImageNet dataset which consists of nearly 14 million
 which are labeled among 1000 different categories.
 Some of these images are shown below
 
+<center>
+
 ![Imagenet dataset](ImageNet.png)
+</center>
 
 VGG19 is one of the networks that was trained on this dataset to find category of 
 each image. This network consists of some convolutional layers and 2 fully connected 
 layer at the end, and a softmax layer to predict probabilities on each class. 
 
+<center>
+
 ![vgg19 network](vgg19.jpg)
+</center>
 
 This network takes an image and do some transformations on that and goes forward to
 reach the last layer which is a probability distribution on 1000 classes. As the
@@ -72,16 +84,19 @@ between images? The answer is __Yes__
 Below tabel shows the closest images to shoe, hair, and car pictures, in terms of L2 Distance in
 __primary, max_pool5, FC1, FC2__ spaces.
 
+<center>
+
 Space | Shoe Item | Hair Item |  Car Item
 ------------ | ------------ | ------------- | -------------
 Image | ![Image of shoe](shoe.jpg) | ![Image of hair](hair.jpg) | ![Image of car](car.jpg)
-Closest in Primary space | ![closest to shoe in primary space](shoe_2.jpg) | ![closest to hair in primary space](hair_primary.jpg) | ![closest to car in primary space](car_primary.jpg)
-Closest in Pool5 space| ![closest to shoe in Max_pool5 space](shoe_2.jpg) | ![closest image to hair in Max_pool5 space](hair_pool5.jpg) | ![closest image to hair in Max_pool5 space](car_pool5.jpg)
-Closest in FC1 space| ![closest to shoe in FC1 space](shoe_2.jpg) | ![closest image to hair in FC1 space](hair_fc1.jpg) |  ![closest image to hair in FC1 space](car_fc1.jpg)
-Closest in FC2 space| ![closest to shoe in FC2 space](shoe_2.jpg) | ![closest image to hair in FC2 space](hair_fc2.jpg) | ![closest image to hair in FC2 space](car_fc2.jpg)
+Closest in Primary space | ![closest to shoe in primary space](shoe_fc2.jpg) | ![closest to hair in primary space](hair_primary.jpg) | ![closest to car in primary space](car_primary.jpg)
+Closest in Pool5 space| ![closest to shoe in Max_pool5 space](shoe_fc2.jpg) | ![closest image to hair in Max_pool5 space](hair_pool5.jpg) | ![closest image to hair in Max_pool5 space](car_pool5.jpg)
+Closest in FC1 space| ![closest to shoe in FC1 space](shoe_fc2.jpg) | ![closest image to hair in FC1 space](hair_fc1.jpg) |  ![closest image to hair in FC1 space](car_fc1.jpg)
+Closest in FC2 space| ![closest to shoe in FC2 space](shoe_fc2.jpg) | ![closest image to hair in FC2 space](hair_fc2.jpg) | ![closest image to hair in FC2 space](car_fc2.jpg)
 
 As you can see distances in FC2 space is meaningful and images which have lower distance 
 are related from human point of view! (Images which have lower distance in primary space
 are related from pixels point of view!)
+</center>
 
 [back](./)
