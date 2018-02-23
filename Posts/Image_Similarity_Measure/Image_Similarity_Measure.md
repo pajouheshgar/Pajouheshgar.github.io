@@ -46,21 +46,15 @@ This network was trained on ImageNet dataset which consists of nearly 14 million
 which are labeled among 1000 different categories.
 Some of these images are shown below
 
-<center>
-
 ![Imagenet dataset](ImageNet.png)
 
-</center>
 
 VGG19 is one of the networks that was trained on this dataset to find category of 
 each image. This network consists of some convolutional layers and 2 fully connected 
 layer at the end, and a softmax layer to predict probabilities on each class. 
 
-<center>
-
 ![vgg19 network](vgg19.jpg)
 
-</center>
 
 This network takes an image and do some transformations on that and goes forward to
 reach the last layer which is a probability distribution on 1000 classes. As the
