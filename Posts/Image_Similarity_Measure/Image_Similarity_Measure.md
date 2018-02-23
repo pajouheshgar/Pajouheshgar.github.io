@@ -14,6 +14,7 @@ An Item | A Duplicate
 ------------ | -------------
 ![Image of shoe](shoe.jpg) | ![Duplicate image of shoe](shoe_fc2.jpg)
 ![Image of hair](hair.jpg) | ![Duplicate Image of hair](hair_fc2.jpg)
+
 </center>
 
 Existence of similar items and showing them in the
@@ -34,6 +35,7 @@ An Item | Closest Item
 ------------ | -------------
 ![Image of shoe](shoe.jpg) | ![closest image to shoe](shoe_fc2.jpg)
 ![Image of hair](hair.jpg) | ![closest image to hair](hair_primary.jpg)
+
 </center>
 
 We see that L2 distance between images can produce rubbish results!
@@ -53,6 +55,7 @@ Some of these images are shown below
 <center>
 
 ![Imagenet dataset](ImageNet.png)
+
 </center>
 
 VGG19 is one of the networks that was trained on this dataset to find category of 
@@ -62,6 +65,7 @@ layer at the end, and a softmax layer to predict probabilities on each class.
 <center>
 
 ![vgg19 network](vgg19.jpg)
+
 </center>
 
 This network takes an image and do some transformations on that and goes forward to
@@ -94,9 +98,10 @@ Closest in Pool5 space| ![closest to shoe in Max_pool5 space](shoe_fc2.jpg) | ![
 Closest in FC1 space| ![closest to shoe in FC1 space](shoe_fc2.jpg) | ![closest image to hair in FC1 space](hair_fc1.jpg) |  ![closest image to hair in FC1 space](car_fc1.jpg)
 Closest in FC2 space| ![closest to shoe in FC2 space](shoe_fc2.jpg) | ![closest image to hair in FC2 space](hair_fc2.jpg) | ![closest image to hair in FC2 space](car_fc2.jpg)
 
+</center>
+
 As you can see distances in FC2 space is meaningful and images which have lower distance 
 are related from human point of view! (Images which have lower distance in primary space
 are related from pixels point of view!)
-</center>
 
 [back](./)
