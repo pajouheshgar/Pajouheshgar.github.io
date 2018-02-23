@@ -89,4 +89,80 @@ As you can see distances in FC2 space is meaningful and images which have lower 
 are related from human point of view! (Images which have lower distance in primary space
 are related from pixels point of view!)
 
+#### Assigning a Number to Similarity of Two Image:
+We see that distances in transformed space is meaningful. Now he we
+can assign a number in [0, 1] interval to each pair of images to show their similarity.
+(Zero regards to no similarity and One regards to the highest similarity)
+
+The idea is to estimate the distribution of image distances in FC2 space.
+Our dataset contains about 14K image but I am using only 10% of the data to estimate
+the distribution (due to the time complexity which is O(n<sup>2</sup>)!)
+
+calculating distances between these images and plotting the histogram will lead
+to the following figure
+(distances is zero-meaned and scaled, to variance will equal to 1.0)
+
+![distances hisogram](distances_histogram.png)
+
+At first glance it looks like a normal distribution. best fitting normal distribution
+in terms of Maximum Likelihood is standard normal. Fitting the normal distribution
+will lead to the next figure
+
+![distances hisogram](distances_normal.png)
+
+It seems that its a bad fit because the distribution is a bit asymmetric while
+normal distribution is symmetric. Can we do better? Yes!
+
+There is distribution called [__Skew Normal Distribution__](https://en.wikipedia.org/wiki/Skew_normal_distribution).
+We can fit an Skew Normal distribution using maximum likelihood. 
+Scipy library in python will help us!
+ 
+ ```python
+from scipy.stats import skewnorm
+from scipy.stats import norm
+import numpy as np
+import matplotlib.pyplot as plt
+distances = ["Distance between pairs of images"]
+x = np.linspace(min(distances), max(distances), 1000)
+mean = np.mean(distances)
+variance = np.var(distances, ddof=1)
+sigma = np.sqrt(variance)
+distances = (distances - mean) / sigma
+a, m, v = skewnorm.fit(distances)
+s = np.sqrt(v)
+plt.hist(distances, bins=200, normed=True, label="Distances Histogram")
+plt.plot(x, norm.pdf(x, 0, 1), label="Normal Distribution")
+plt.plot(x, skewnorm.pdf(x, a, m, s), label='Skew Normal Distribution')
+
+```
+
+Skew Normal distribution got 3 parameters. _Mean_, _Variance_, and _Alpha_ which is
+ shape parameter and is a measure of skewness of the distribution.
+ 
+![Skew Normal Distribution](distances_skew_normal.png)
+
+Fitted Skew Normal looks closer to the true distribution. It seems we can do
+better by combining Normal and Skew Normal distribution by maturing them because the
+true distribution lies between them!
+ 
+With weighted averaging distribution we can do better but how to find the mixture
+ coefficient properly? Again Maximum Likelihood will help us.
+ 
+Below figure shows the likelihood w.r.t mixture coefficient (Zero coefficient regards
+to pure Skew Normal and One coefficient regards to pure Normal distribution.)
+
+![Likelihood w.r.t coef](likelihood_alpha.png)
+
+Using the Maximum Likelihood estimation of the coefficient parameter 
+(which is approximately 0.31) and 
+plotting the mixture distribution I achieve the following figure.
+
+![Mixture Distribution](distances_mixture.png)
+
+We see that mixture distribution
+It's good to notice that above treatment was something like a single step EM algorithm!
+ (But in reverse order I think!)
+
+
+
 [back](./)
