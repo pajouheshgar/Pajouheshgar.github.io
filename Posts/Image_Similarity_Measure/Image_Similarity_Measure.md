@@ -5,7 +5,7 @@ layout: default
 ## Advertisement Similarity Detection
 
 #### Problem Definition: 
-Below is illustration of some duplicate advertisements which should be detected. (from now on I will use __item__ instead of __advertisement__)
+Below is an illustration of some duplicate advertisements which should be detected. (from now on I will use __item__ instead of __advertisement__)
 The task is completely unsupervised and we have no labeled data of any similar items. 
 
 An Item | A Duplicate
@@ -22,9 +22,9 @@ effectiveness.
 To find similar image a trivial idea is to compute
 L2 distance between images and if the distance is lower than
 some threshold mark them as duplicates. This trivial method will cause
-pool results because by changing point of view, objects position, and image contrast
+pool results because by changing point of view, object position, and image contrast
 the L2 distance will change significantly.
-Below figures shows the closest image w.r.t Euclidean distance between two image.
+Below figures show the closest image w.r.t Euclidean distance between two images.
 
 An Item | Closest Item
 ------------ | -------------
@@ -33,15 +33,15 @@ An Item | Closest Item
 
 
 We see that L2 distance between images can produce rubbish results!
-As you see closest image to top view of a head is a bride and broom
+As you see the closest image to the top view of a head is a bride and groom
 walking on a green field! (Perhaps because both images have a white area in the center.)
 
-So can we do better? If we could transform each image to an space which closer points 
+So can we do better? If we could transform each image into a new space which closer points 
 have similar characteristics then we can use L2 distance in transformed space and expect
 better results.
 
 #### Transforming Image Into meaningful space:
-The idea is to use some pretrained neural network! I have used VGG19.
+The idea is to use some pre-trained neural network! I have used VGG19.
 This network was trained on ImageNet dataset which consists of nearly 14 million images
 which are labeled among 1000 different categories.
 Some of these images are shown below
@@ -49,31 +49,31 @@ Some of these images are shown below
 ![Imagenet dataset](ImageNet.png)
 
 
-VGG19 is one of the networks that was trained on this dataset to find category of 
-each image. This network consists of some convolutional layers and 2 fully connected 
-layer at the end, and a softmax layer to predict probabilities on each class. 
+VGG19 is one of the networks that was trained on this dataset to find the
+category of each image. This network consists of some convolutional layers and 2 fully-connected 
+layers at the end, and a softmax layer to predict probabilities on each class. 
 
 ![vgg19 network](vgg19.jpg)
 
 
 This network takes an image and do some transformations on that and goes forward to
 reach the last layer which is a probability distribution on 1000 classes. As the
-network learns to find the correct class for each images it learns to transform 
+network learns to find the correct class for each image. It learns to transform 
 images into meaningful spaces. I reshaped each image to (300 * x), maintaining it's aspect
 ratio and then center cropped each to obtain a (224 * 224 * 3) image.(3 relates to "RGB" channel)
-VGG network takes an image and do some operations on it. input image is a (224 * 224 * 3)
+VGG network takes an image and does some operations on it. input image is a (224 * 224 * 3)
 tensor and for example output of the last max pooling layer is (7 * 7 * 512) tensor.
 Two last fully connected layers are vector of 4096 elements, it means that each image
-is transformed into a 4096 dimensional space at last fully connected layers.
+is transformed into a 4096-dimensional space at last fully connected layers.
 
-So for each image we have output of different layers in VGG19 network which each regards
-to a transformation of image. I have used last three layers (max_pool5, FC1, FC2) which are
+So for each image, we have the output of different layers in the VGG19 network which each regards
+to a transformation of the image. I have used last three layers (max_pool5, FC1, FC2) which are
 (7 * 7 * 512), (4096), (4096) dimensional vectors.
 
-Can we expect that using L2 distance in these new spaces work better than normal L2 distance
+Can we expect that using L2 distance in these new spaces work better than the normal L2 distance
 between images? The answer is __Yes__
 
-Below tabel shows the closest images to shoe, hair, and car pictures, in terms of L2 Distance in
+Below table shows the closest images to shoe, hair, and car pictures, in terms of L2 Distance in
 __primary, max_pool5, FC1, FC2__ spaces.
 
 Space | Shoe Item | Hair Item |  Car Item
@@ -86,13 +86,13 @@ Closest in FC2 space| ![closest to shoe in FC2 space](shoe_fc2.jpg) | ![closest 
 
 
 As you can see distances in FC2 space is meaningful and images which have lower distance 
-are related from human point of view! (Images which have lower distance in primary space
+are related from the human point of view! (Images which have a lower distance in primary space
 are related from pixels point of view!)
 
 #### Assigning a Number to Similarity of Two Image:
-We see that distances in transformed space is meaningful. Now he we
+We see that distances in transformed space are meaningful. Now we
 can assign a number in [0, 1] interval to each pair of images to show their similarity.
-(Zero regards to no similarity and One regards to the highest similarity)
+(Zero regards to no similarity and One regard to the highest similarity)
 
 The idea is to estimate the distribution of image distances in FC2 space.
 Our dataset contains about 14K image but I am using only 10% of the data to estimate
@@ -104,17 +104,17 @@ to the following figure
 
 ![distances hisogram](distances_histogram.png)
 
-At first glance it looks like a normal distribution. best fitting normal distribution
+At first glance, it looks like a normal distribution. best fitting normal distribution
 in terms of Maximum Likelihood is standard normal. Fitting the normal distribution
-will lead to the next figure
+will lead to the next figure.
 
 ![distances hisogram](distances_normal.png)
 
-It seems that its a bad fit because the distribution is a bit asymmetric while
+It seems that it's a bad fit because the distribution is a bit asymmetric while
 normal distribution is symmetric. Can we do better? Yes!
 
 There is distribution called [__Skew Normal Distribution__](https://en.wikipedia.org/wiki/Skew_normal_distribution).
-We can fit an Skew Normal distribution using maximum likelihood. 
+We can fit a Skew Normal distribution using maximum likelihood. 
 Scipy library in python will help us!
  
  ```python
@@ -163,18 +163,18 @@ We see that mixture distribution
 It's good to notice that above treatment was something like a single step EM algorithm!
  (But in reverse order I think!)
 
-Now how to achieve a similarity measure in range [0, 1] ? The idea is to use
+Now how to achieve a similarity measure in the range [0, 1] ? The idea is to use
 CDF of estimated distribution.
 If ![variables](http://www.sciweavers.org/upload/Tex2Img_1519425971/render.png) and
 ![variables](http://www.sciweavers.org/upload/Tex2Img_1519426031/render.png) are two
 transformed image then we had estimated distribution of ![distance](http://www.sciweavers.org/upload/Tex2Img_1519426205/render.png)
-with mixture of a Normal and a Skew Normal distribution. Thus we can use (1 - mixture CDF)
-to represent the similarity measure between two image. 
+with a mixture of a Normal and a Skew Normal distribution. Thus we can use (1 - mixture CDF)
+to represent the similarity measure between two images. 
 
 ![CDF meaning](http://www.sciweavers.org/upload/Tex2Img_1519426671/render.png)
  
 So if two transformed images are very close together then CDF function is close to zero
-at the point regarding to images distance. Thus (1 - CDF) is close to one and we can
+at the point regarding images distance. Thus (1 - CDF) is close to one and we can
 use it as similarity measure.
 
 ###### Example:
