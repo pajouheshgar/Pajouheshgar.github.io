@@ -7,6 +7,7 @@ layout: default
 #### Problem Definition: 
 Below is an illustration of some duplicate advertisements which should be detected. (from now on I will use __item__ instead of __advertisement__)
 The task is completely unsupervised and we have no labeled data of any similar items. 
+The data is provided by [Yektanet](http://yektanet.com/), nne of the biggest _Online Advertise Platforms_ in Iran.
 
 An Item | A Duplicate
 ------------ | -------------

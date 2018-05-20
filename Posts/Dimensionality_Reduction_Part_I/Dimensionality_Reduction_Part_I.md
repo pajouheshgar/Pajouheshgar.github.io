@@ -23,7 +23,17 @@ All systems in the world are created from small units which by the failure of a 
 2. Animals are made of building blocks we call cells.
 3. Colonies are made of building blocks we call colony members.
 4. Countries are made of building blocks we call citizens.
+5. Images are made of building blocks we call pixels.
+6. Brain is made of building blocks we call neurons.
 
 And so on...
+
+To put it briefly combining many simple units allow us to perform variety of complex tasks, hence a 
+modular implementation of the __Word__ will lead to multi-dimensionality!
+
+But the essence of the world is simple(It's my own belief but its a long historical debate!), e.g colony of ants
+follows a simple rule and etc.
+The goal of dimensionality reduction is to find this essence!
+
 
 [back](./)
