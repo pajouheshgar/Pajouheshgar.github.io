@@ -21,10 +21,12 @@ like rotating keys and cubes and openning door animations.
 You can also make your own 3D Objects, Animations, and Finally your own game environment.
  
 ![first person view](3D%20Game%20Environment/first%20person.PNG)
+
 First person view of the game environment
 
 ![third person view](3D%20Game%20Environment/3rd%20person.PNG)
-<center>Third person view of the game environment</center>
+
+Third person view of the game environment
 
   
 
