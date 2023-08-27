@@ -7,14 +7,7 @@
     <bookmark url="file://$PROJECT_DIR$/Posts/MLE_Discrete/Code/image.py" line="13" mnemonic="9" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Pajouheshgar.github.io.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/R_User_Library.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="b805d38d-2841-40e7-a36c-3edf6e7265e1" name="Default" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -297,7 +290,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1514467671822</updated>
-      <workItem from="1693064616230" duration="9441000" />
+      <workItem from="1693064616230" duration="10072000" />
     </task>
     <servers />
   </component>
