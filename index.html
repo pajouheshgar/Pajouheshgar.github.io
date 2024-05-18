@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="en" xmlns="">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSSRCE808M"></script>
@@ -156,14 +156,18 @@
                             }
 
                             function meshnca_stop() {
+                                if (detectMob()) {
+                                    document.getElementById('meshnca_image').style.opacity = "1";
+                                } else {
                                 document.getElementById('meshnca_image').style.opacity = "0";
+                                }
                             }
 
                             meshnca_start()
                         </script>
                     </td>
                     <td style="padding:20px;width:75%;vertical-align:middle">
-                        <a href="https://dynca.github.io">
+                        <a href="https://meshnca.github.io">
                             <papertitle>Mesh Neural Cellular Automata
                             </papertitle>
                         </a>
@@ -212,7 +216,11 @@
                             }
 
                             function dynca_stop() {
-                                document.getElementById('dynca_image').style.opacity = "0";
+                                if (detectMob()) {
+                                    document.getElementById('dynca_image').style.opacity = "1";
+                                } else {
+                                    document.getElementById('dynca_image').style.opacity = "0";
+                                }
                             }
 
                             dynca_start()
@@ -375,5 +383,21 @@
     </tr>
 </table>
 </body>
+<script>
+    function detectMob() {
+    const toMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i
+    ];
 
+    return toMatch.some((toMatchItem) => {
+        return navigator.userAgent.match(toMatchItem);
+    });
+}
+</script>
 </html>
