@@ -55,7 +55,8 @@
                             I'm also interested in Computer Vision and Computer Graphics. I like
                             to design (bio and physics)-inspired models to tackle different problems in these fields.
                             More recently, I am learning and doing research on Artificial Life. I am interested in
-                            the emergence of life-like behaviors such as Solitons, Self-Organization, Self-Replication.
+                            the emergence of life-like behaviors such as Solitons, Self-Organization, and
+                            Self-Replication.
 
                         </p>
 
@@ -80,12 +81,22 @@
 
                         </p>
                         <p style="text-align:center">
+
                             <a href="mailto:e.pajouheshgar@gmail.com">Email</a> &nbsp/&nbsp
                             <a href="data/CV.pdf">CV</a> &nbsp/&nbsp
                             <!--                            <a href="https://www.linkedin.com/in/yitao-xu-b016891b2/">Linkedin</a> &nbsp/&nbsp-->
                             <a href="https://scholar.google.com/citations?user=bddQ6pQAAAAJ&hl=en">Google Scholar</a>
                             &nbsp/&nbsp
                             <a href="https://github.com/TheDevilWillBeBee">Github</a>
+                        </p>
+
+                        <p style="text-align:center">
+                            <b> Navigate this page </b>
+                            <br>
+                            <a href="#awards">Awards</a> &nbsp/&nbsp
+                            <a href="#publications">Publications</a> &nbsp/&nbsp
+                            <!--                            <a href="https://www.linkedin.com/in/yitao-xu-b016891b2/">Linkedin</a> &nbsp/&nbsp-->
+                            <a href="#news">News</a>
                         </p>
                     </td>
                     <td style="padding:2.5%;width:40%;max-width:40%">
@@ -95,11 +106,12 @@
                 </tr>
                 </tbody>
             </table>
-            <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <table id="awards"
+                   style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
                 <tbody>
                 <tr>
                     <th style="text-align:center;" colspan="2">
-                        <heading>Awards</heading>
+                        <heading>Awards &#127942;</heading>
                     </th>
                 </tr>
                 <tr>
@@ -132,11 +144,13 @@
                 </tbody>
             </table>
 
+
             <br><br>
-            <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <table id="publications"
+                   style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
                 <tbody>
                 <th colspan="2" style="text-align:center;">
-                    <heading>Publication Highlights</heading>
+                    <heading>Publication Highlights &#128220;</heading>
                 </th>
 
                 <tr onmouseout="meshnca_stop()" onmouseover="meshnca_start()">
@@ -159,7 +173,7 @@
                                 if (detectMob()) {
                                     document.getElementById('meshnca_image').style.opacity = "1";
                                 } else {
-                                document.getElementById('meshnca_image').style.opacity = "0";
+                                    document.getElementById('meshnca_image').style.opacity = "0";
                                 }
                             }
 
@@ -193,6 +207,66 @@
                             (albedo, normal, roughness, ...) for Physically-based-rendering (PBR).
                             It also enables grafting multiple NCA models on each other to create mixture of textures.
                             Checkout the <a href="https://meshnca.github.io/">demo</a>!
+                        </p>
+                        <p>
+                        </p>
+                    </td>
+                </tr>
+
+                <tr onmouseout="noisenca_stop()" onmouseover="noisenca_start()">
+                    <td style="padding:20px;width:25%;vertical-align:middle">
+                        <div class="one">
+                            <div class="two" id='noisenca_image'>
+                                <video width=100% height=100% muted autoplay loop>
+                                    <source src="images/noisenca.mp4" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <img src='images/noisenca.png' width="160">
+                        </div>
+                        <script type="text/javascript">
+                            function noisenca_start() {
+                                document.getElementById('noisenca_image').style.opacity = "1";
+                            }
+
+                            function noisenca_stop() {
+                                if (detectMob()) {
+                                    document.getElementById('noisenca_image').style.opacity = "1";
+                                } else {
+                                    document.getElementById('noisenca_image').style.opacity = "0";
+                                }
+                            }
+
+                            noisenca_start()
+                        </script>
+                    </td>
+                    <td style="padding:20px;width:75%;vertical-align:middle">
+                        <a href="https://noisenca.github.io">
+                            <papertitle>NoiseNCA: Noisy Seed Improves Spatio-Temporal Continuity of Neural Cellular
+                                Automata
+                            </papertitle>
+                        </a>
+                        <br>
+                        <strong>Ehsan Pajouheshgar</strong>,
+                        Yitao Xu,
+                        Sabine Süsstrunk
+                        <br>
+                        <em>Artificial Life (ALife)</em>, 2024
+                        <br>
+                        <a href="https://noisenca.github.io/">Demo</a>
+                        /
+                        <a href="https://arxiv.org/abs/2404.06279">arXiv</a>
+                        /
+                        <a href="">Coming soon</a>
+                        <p></p>
+                        <p>
+                            We propose a small change to Neural Cellular Automata (NCA) and show that the update rule
+                            learned by NoiseNCA
+                            actually correspond to a continuous space-time Partial Differential Equation (PDE).
+                            Utilizing this emergent space-time continuity, NoiseNCA allows changing the speed of the
+                            pattern formation
+                            and the scale of the patterns at inference time.
+                            Checkout the <a href="https://noisenca.github.io/">demo</a>!
                         </p>
                         <p>
                         </p>
@@ -298,9 +372,64 @@
             <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
                 <tbody>
                 <th colspan="2" style="text-align:center;">
-                    <heading>Publications</heading>
+                    <heading>Publications &#128220;</heading>
                 </th>
 
+
+                <tr onmouseout="emdnca_stop()" onmouseover="emdnca_start()">
+                    <td style="padding:20px;width:25%;vertical-align:middle">
+                        <div class="one">
+                            <div class="two" id='emd_nca_image'>
+                                <video width=100% height=100% muted autoplay loop>
+                                    <source src="images/emergent_dynamics_nca.mp4" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <img src='images/emergent_dynamics_nca.png' width="160">
+                        </div>
+                        <script type="text/javascript">
+                            function emdnca_start() {
+                                document.getElementById('emd_nca_image').style.opacity = "1";
+                            }
+
+                            function emdnca_stop() {
+                                if (detectMob()) {
+                                    document.getElementById('emd_nca_image').style.opacity = "1";
+                                } else {
+                                    document.getElementById('emd_nca_image').style.opacity = "0";
+                                }
+                            }
+
+                            emdnca_start()
+                        </script>
+                    </td>
+                    <td style="padding:20px;width:75%;vertical-align:middle">
+                        <a href="https://arxiv.org/abs/2111.12583">
+                            <papertitle>Emergent Dynamics in Neural Cellular Automata
+                            </papertitle>
+                        </a>
+                        <br>
+                        Yitao Xu, <strong>Ehsan Pajouheshgar</strong>, Sabine Süsstrunk
+                        <br>
+                        <em>Artificial Life (ALife)</em>, 2022
+                        <br>
+                        <a href="https://arxiv.org/abs/2404.06406">arXiv</a> /
+                        <a href="">Coming Soon</a>
+                        <p></p>
+                        <p>
+                            Trained Neural Cellular Automata (NCA) models exhibit many emergent behaviors, such as
+                            self-organization, and spontaneous motion. In this paper we investigate the spontaneous
+                            motion property
+                            of NCAs. We find that the ratio between the number of channels in the cell state
+                            and the number of hidden neurons in the update rule is a key factor that controls the
+                            NCA stability and emergent motion in the NCA generated patterns.
+
+                        </p>
+                        <p>
+                        </p>
+                    </td>
+
+                </tr>
 
                 <tr>
                     <td style="padding:20px;width:25%;vertical-align:middle">
@@ -366,6 +495,41 @@
             </table>
 
 
+            <table id="news"
+                   style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+                <tbody>
+                <tr>
+                    <th style="text-align:center;" colspan="2">
+                        <heading>News &#128240;</heading>
+                    </th>
+                </tr>
+                <tr>
+                    <td><br></td>
+                </tr>
+                <tr>
+                    <td>July. 2024</td>
+                    <td>I will attend <b>Siggraph 2024</b> Conference (&#129310; on visa). Let's meet there!</td>
+                </tr>
+                <tr>
+                    <td>July. 2024</td>
+                    <td>I will attend <b>Artificial Life (ALife 2024)</b> Conference. Let's meet there!</td>
+                </tr>
+                <tr>
+                    <td>May. 2023</td>
+                    <td>Two papers accepted to ALife 2024.</td>
+                </tr>
+                <tr>
+                    <td>Mar. 2023</td>
+                    <td>MeshNCA was accepted as a journal paper to SIGGRAPH 2024.</td>
+                </tr>
+
+
+                <tr>
+                    <td><br></td>
+                </tr>
+                </tbody>
+            </table>
+
             <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
                 <tbody>
                 <tr>
@@ -385,19 +549,20 @@
 </body>
 <script>
     function detectMob() {
-    const toMatch = [
-        /Android/i,
-        /webOS/i,
-        /iPhone/i,
-        /iPad/i,
-        /iPod/i,
-        /BlackBerry/i,
-        /Windows Phone/i
-    ];
+        return false;
+        const toMatch = [
+            /Android/i,
+            /webOS/i,
+            /iPhone/i,
+            /iPad/i,
+            /iPod/i,
+            /BlackBerry/i,
+            /Windows Phone/i
+        ];
 
-    return toMatch.some((toMatchItem) => {
-        return navigator.userAgent.match(toMatchItem);
-    });
-}
+        return toMatch.some((toMatchItem) => {
+            return navigator.userAgent.match(toMatchItem);
+        });
+    }
 </script>
 </html>
