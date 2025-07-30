@@ -1,0 +1,237 @@
+<script src="swissgl.js"></script>
+<script src="dat.gui.min.js"></script>
+<canvas id="c" width="512" height="512"></canvas>
+<br><br>
+<!-- Add  your own CA Rule -->
+Add your own CA rule:
+<br>
+<input type="text" id="rule_name" placeholder="Rule Name">
+<input type="text" id="rule_code" placeholder="512-bit Binary Code">
+<button id="add_rule">Add Rule</button>
+
+
+<script>
+    const canvas = document.getElementById('c');
+    // create WebGL2 context end SwissGL
+    const glsl = SwissGL(canvas);
+    const gui = new dat.GUI();
+
+    let rule_gui;
+
+    // Add functionality for adding a new CA rule
+    // Add a text box for the name of the rule and a text box for the 512 binary code
+    // Do this in html below the canvas
+
+
+    let CAs;
+    let CA = null;
+    let CA_state;
+
+    const params = {
+        rule: "rule14",
+        grid_size: 128,
+        run_ca: true,
+        adaptive_steps: true,
+        steps_per_frame: 1,
+
+    };
+
+    const uniforms = {
+        init_bit: 0,
+        brush_bit: 1,
+        // init_bit: 1,
+        noise_prob: 0.1,
+        noise_bias: 0.0,
+        update_prob: 1.0,
+        brush_size: 0.1,
+
+        mouse_x: 0.0,
+        mouse_y: 0.0,
+        mouse_down: false,
+
+
+    };
+
+    gui.add(params, 'grid_size', 32, 256).onChange(reset);
+    gui.add(params, 'run_ca');
+    gui.add(params, "adaptive_steps").onChange((value) => {
+        if (value) {
+            params.steps_per_frame = Math.min(256, Math.max(1, Math.floor(1 / uniforms.update_prob)));
+        } else {
+            params.steps_per_frame = 1;
+        }
+    });
+
+    gui.add(uniforms, 'init_bit', {"0": 0, "1": 1, "Random": -1}).onChange(reset);
+    gui.add(uniforms, 'brush_bit', {"0": 0, "1": 1, "Random": -1});
+
+    gui.add(uniforms, 'noise_prob', 0.0, 1.0, 0.001);
+    gui.add(uniforms, 'noise_bias', -1.0, 1.0, 0.001);
+    gui.add(uniforms, 'update_prob', 0.001, 1.0, 0.001).onChange((value) => {
+            if (params.adaptive_steps) {
+                params.steps_per_frame = Math.min(256, Math.max(1, Math.floor(1 / value)));
+            }
+        }
+    );
+    gui.add(uniforms, 'brush_size', 0.01, 0.5);
+
+    async function init() {
+        const response = await fetch("ca_rules.json");
+        CAs = await response.json();
+        for (const name in CAs) {
+            CAs[name].binary_code = Float32Array.from(CAs[name].code, (c) => c === '1' ? 1.0 : 0.0);
+        }
+        rule_gui = gui.add(params, 'rule', Object.keys(CAs)).onChange((value) => {
+            CA = load_CA(value);
+        });
+        CA = load_CA(params.rule);
+        reset();
+        render();
+
+    }
+
+    init();
+
+    // Add functionality to add a new CA rule
+    document.getElementById('add_rule').addEventListener('click', () => {
+        const rule_name = document.getElementById('rule_name').value;
+        const rule_code = document.getElementById('rule_code').value;
+        if (rule_name && rule_code && rule_code.length === 512 && /^[01]+$/.test(rule_code)) {
+            CAs[rule_name] = {name: rule_name, code: rule_code};
+            CAs[rule_name].binary_code = Float32Array.from(rule_code, (c) => c === '1' ? 1.0 : 0.0);
+            // Modify the existing gui rule without adding a new element to the gui
+            gui.remove(rule_gui);
+            rule_gui = gui.add(params, 'rule', Object.keys(CAs)).onChange((value) => {
+                CA = load_CA(value);
+            });
+            rule_gui.setValue(rule_name);
+            CA = load_CA(rule_name);
+        } else {
+            alert("Please enter a valid rule name and a 512-bit binary code.");
+        }
+    });
+
+
+    function load_CA(name) {
+        CA = CAs[name];
+        CA.rule_bits = glsl({}, {size: [1, 512], format: "r32f", story: 1, tag: "rule", data: CA.binary_code})
+
+        return CA;
+    }
+
+    // Mouse click
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.button === 0) { // left click
+            uniforms.mouse_down = true;
+        }
+    });
+    canvas.addEventListener('mouseup', (e) => {
+        if (e.button === 0) { // left click
+            uniforms.mouse_down = false;
+        }
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        uniforms.mouse_x = e.offsetX / canvas.width;
+        uniforms.mouse_y = 1.0 - e.offsetY / canvas.height;
+        if (uniforms.mouse_down) {
+            brush();
+        }
+    });
+
+    function brush() {
+        glsl({
+            ...uniforms,
+            seed: Math.random() * 5132,
+            FP: `
+                float d = distance(UV, vec2(mouse_x, mouse_y));
+                if (d < brush_size) {
+                    if (brush_bit == -1.0) {
+                        float b = hash(ivec3(I, seed)).x;
+                        FOut = vec4(b < 0.5 ? 1.0: 0.0);
+                    } else if (brush_bit == 1.0) {
+                        FOut = vec4(1);
+                    } else {
+                        FOut = vec4(0);
+                    }
+                } else {
+                    FOut = Src(I);
+                }
+            `
+        }, CA_state);
+    }
+
+
+    function reset() {
+        CA_state = glsl({
+            seed: Math.random() * 1000, ...uniforms,
+            FP: `
+                if (init_bit == -1.0) {
+                    float b = hash(ivec3(I, seed)).x;
+                    FOut = vec4(b < 0.5 ? 1.0: 0.0);
+                } else if (init_bit == 1.0) {
+                    FOut = vec4(1);
+                } else {
+                    FOut = vec4(0);
+                }
+            `
+        }, {size: [params.grid_size, params.grid_size], format: 'r16f', story: 2, tag: 'state'});
+    }
+
+
+    function step(t) {
+        if (!params.run_ca) return;
+
+        glsl({
+            ...uniforms,
+            rule: CA.rule_bits[0],
+            seed: t + Math.random() * 6523,
+            FP: `
+                float s = Src(I).x;
+                float p = 1.0;
+                float res = 0.0;
+                bool update_flag = hash(ivec3(I, seed)).x < update_prob;
+
+                if (!update_flag) {
+                    FOut = vec4(s);
+                    return;
+                }
+
+                bool noise_flag = hash(ivec3(I, seed + 1231.0)).x < noise_prob;
+                if (noise_flag) {
+                    bool bias_flag = (hash(ivec3(I, seed + 7861.0)).x - 0.5) * 2.0 < noise_bias;
+                    if (bias_flag) {
+                        FOut = vec4(1.0);
+                    } else  {
+                        FOut = vec4(0.0);
+                    }
+                } else {
+                    for (int i = -1; i < 2; i++) {
+                        for (int j = -1; j < 2; j++) {
+                            ivec2 pos = (I + ivec2(i,j)+ViewSize)%ViewSize;
+                            res += Src(pos).x * p;
+                            p *= 2.0;
+                        }
+                    }
+                    float s_next = rule(ivec2(0, int(res))).x;
+                    FOut = vec4(s_next);
+                }
+            `
+        }, CA_state);
+
+    }
+
+
+    function render(t) {
+        if (!CA) return;
+        for (let i = 0; i < params.steps_per_frame; i++) {
+            step(t);
+        }
+        glsl({
+            state: CA_state[0].nearest,
+            FP: `vec4(vec3(state(UV).x)*0.6+0.2,1)`
+        });
+        requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+</script>
