@@ -121,22 +121,45 @@ Add your own CA rule:
 
     // Mouse click
     canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
         if (e.button === 0) { // left click
             uniforms.mouse_down = true;
         }
     });
     canvas.addEventListener('mouseup', (e) => {
+        e.preventDefault();
         if (e.button === 0) { // left click
             uniforms.mouse_down = false;
         }
     });
     canvas.addEventListener('mousemove', (e) => {
+        e.preventDefault();
         uniforms.mouse_x = e.offsetX / canvas.width;
         uniforms.mouse_y = 1.0 - e.offsetY / canvas.height;
         if (uniforms.mouse_down) {
             brush();
         }
     });
+
+    // Do the same for touch
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        uniforms.mouse_down = true;
+    });
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        uniforms.mouse_down = false;
+    });
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        uniforms.mouse_x = touch.clientX / canvas.width;
+        uniforms.mouse_y = 1.0 - touch.clientY / canvas.height;
+        if (uniforms.mouse_down) {
+            brush();
+        }
+    });
+
 
     function brush() {
         glsl({
