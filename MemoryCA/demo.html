@@ -31,7 +31,7 @@
 <body>
 <canvas id="c" width="400" height="400"></canvas>
 <br><br>
-<button id="reset">Reset</button>
+<button id="reset_state">Reset State</button> <button id="reset_CA">Reset CA Rule</button>
 <br><br>
 Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
 <input type="text" id="rule_code" placeholder="512-bit Binary Code">
@@ -148,7 +148,7 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
 
     };
 
-    gui.add(params, 'grid_size', 40, 200).onChange(reset);
+    gui.add(params, 'grid_size', 40, 200).onChange(reset_state);
     gui.add(params, 'run_ca');
     gui.add(params, "steps_per_frame",
         {
@@ -164,7 +164,7 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
     //     }
     // });
 
-    gui.add(uniforms, 'init_bit', {"0": 0, "1": 1, "Random": -1}).onChange(reset);
+    gui.add(uniforms, 'init_bit', {"0": 0, "1": 1, "Random": -1}).onChange(reset_state);
     gui.add(uniforms, 'brush_bit', {"0": 0, "1": 1, "Random": -1});
 
     gui.add(uniforms, 'noise_prob', 0.0, 1.0, 0.001);
@@ -184,7 +184,7 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
             CA = load_CA(CAs[value].code);
         });
         CA = load_CA(CAs[params.rule].code);
-        reset();
+        reset_state();
         render();
 
     }
@@ -249,9 +249,10 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
         }, CA_state);
     }
 
-
-    function reset() {
+    function reset_CA() {
         CA = load_CA(CAs[params.rule].code);
+    }
+    function reset_state() {
         CA_state = glsl({
             seed: Math.random() * 1000, ...uniforms,
             FP: `
@@ -269,8 +270,12 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
 
 
     // Reset Button
-    document.getElementById('reset').addEventListener('click', () => {
-        reset();
+    document.getElementById('reset_state').addEventListener('click', () => {
+        reset_state();
+    });
+
+    document.getElementById('reset_CA').addEventListener('click', () => {
+        reset_CA();
     });
 
 
