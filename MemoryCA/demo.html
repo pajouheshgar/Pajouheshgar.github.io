@@ -1,16 +1,108 @@
-<script src="swissgl.js"></script>
-<script src="dat.gui.min.js"></script>
-<canvas id="c" width="512" height="512"></canvas>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory CA with Rule Visualizer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+            padding: 1rem;
+            /*display: flex;*/
+            flex-direction: column;
+            /*align-items: center;*/
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 1272px;
+            height: 632px;
+            margin-top: 20px;
+        }
+
+        #imageCanvas, #overlayCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+    </style>
+</head>
+<body>
+<canvas id="c" width="400" height="400"></canvas>
 <br><br>
 <button id="reset">Reset</button>
 <br><br>
-<!-- Add  your own CA Rule -->
-Add your own CA rule:
-<br>
-<input type="text" id="rule_name" placeholder="Rule Name">
+Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
 <input type="text" id="rule_code" placeholder="512-bit Binary Code">
 <button id="add_rule">Add Rule</button>
+<div class="canvas-container">
+    <canvas id="imageCanvas" width="953" height="474"></canvas>
+    <canvas id="overlayCanvas" width="953" height="474"></canvas>
+</div>
 
+<script src="swissgl.js"></script>
+<script src="dat.gui.min.js"></script>
+</body>
+</html>
+
+<script>
+    const imageCanvas = document.getElementById('imageCanvas');
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const imageCtx = imageCanvas.getContext('2d');
+    const overlayCtx = overlayCanvas.getContext('2d');
+
+    const cols = 32;
+    const rows = 16;
+    const tileSize = 24;
+    const padding = 6;
+
+    const baseImage = new Image();
+    baseImage.src = '512n_small.png';
+    baseImage.onload = () => {
+        imageCtx.drawImage(baseImage, 0, 0);
+    };
+
+    function drawOverlay(rule) {
+        overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        overlayCtx.font = '16px monospace';
+        overlayCtx.textAlign = 'center';
+        overlayCtx.textBaseline = 'middle';
+
+        for (let i = 0; i < 512; i++) {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const bit = rule[i];
+
+            const x = col * (tileSize + padding);
+
+            const y = row * (tileSize + padding);
+
+            overlayCtx.fillStyle = bit === '1' ? 'rgba(0, 255, 0, 0.25)' : 'rgba(255, 0, 0, 0.25)';
+            overlayCtx.fillRect(x, y, tileSize, tileSize);
+        }
+    }
+
+    overlayCanvas.addEventListener('dblclick', (e) => {
+        const rect = overlayCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const col = Math.floor(x / (tileSize + padding));
+        const row = Math.floor(y / (tileSize + padding));
+
+        if (col >= 0 && col < cols && row >= 0 && row < rows) {
+            const index = row * cols + col;
+            let code = CA.code;
+            if (code[index] === '1') {
+                code = code.substring(0, index) + '0' + code.substring(index + 1);
+            } else {
+                code = code.substring(0, index) + '1' + code.substring(index + 1);
+            }
+            load_CA(code);
+        }
+    });
+</script>
 
 <script>
     const canvas = document.getElementById('c');
@@ -33,7 +125,7 @@ Add your own CA rule:
 
     const params = {
         rule: "rule14",
-        grid_size: 128,
+        grid_size: 100,
         run_ca: true,
         // adaptive_steps: true,
         steps_per_frame: -1,
@@ -56,7 +148,7 @@ Add your own CA rule:
 
     };
 
-    gui.add(params, 'grid_size', 32, 256).onChange(reset);
+    gui.add(params, 'grid_size', 40, 200).onChange(reset);
     gui.add(params, 'run_ca');
     gui.add(params, "steps_per_frame",
         {
@@ -88,13 +180,10 @@ Add your own CA rule:
     async function init() {
         const response = await fetch("ca_rules.json");
         CAs = await response.json();
-        for (const name in CAs) {
-            CAs[name].binary_code = Float32Array.from(CAs[name].code, (c) => c === '1' ? 1.0 : 0.0);
-        }
         rule_gui = gui.add(params, 'rule', Object.keys(CAs)).onChange((value) => {
-            CA = load_CA(value);
+            CA = load_CA(CAs[value].code);
         });
-        CA = load_CA(params.rule);
+        CA = load_CA(CAs[params.rule].code);
         reset();
         render();
 
@@ -108,28 +197,37 @@ Add your own CA rule:
         const rule_code = document.getElementById('rule_code').value;
         if (rule_name && rule_code && rule_code.length === 512 && /^[01]+$/.test(rule_code)) {
             CAs[rule_name] = {name: rule_name, code: rule_code};
-            CAs[rule_name].binary_code = Float32Array.from(rule_code, (c) => c === '1' ? 1.0 : 0.0);
             // Modify the existing gui rule without adding a new element to the gui
             gui.remove(rule_gui);
             rule_gui = gui.add(params, 'rule', Object.keys(CAs)).onChange((value) => {
-                CA = load_CA(value);
+                CA = load_CA(CAs[value].code);
             });
             rule_gui.setValue(rule_name);
-            CA = load_CA(rule_name);
+            CA = load_CA(CAs[rule_name].code);
         } else {
             alert("Please enter a valid rule name and a 512-bit binary code.");
         }
     });
 
 
-    function load_CA(name) {
-        CA = CAs[name];
-        CA.rule_bits = glsl({}, {size: [1, 512], format: "r32f", story: 1, tag: "rule", data: CA.binary_code})
-
+    function load_CA(code) {
+        binary_code = Float32Array.from(code, (c) => c === '1' ? 1.0 : 0.0)
+        CA = {
+            code: code,
+            binary_code: binary_code,
+            rule_bits: glsl({}, {
+                size: [1, 512],
+                format: "r32f",
+                story: 1,
+                tag: "rule",
+                data: binary_code
+            }),
+        }
+        drawOverlay(code);
         return CA;
     }
 
-        function brush() {
+    function brush() {
         glsl({
             ...uniforms,
             seed: Math.random() * 5132,
@@ -153,6 +251,7 @@ Add your own CA rule:
 
 
     function reset() {
+        CA = load_CA(CAs[params.rule].code);
         CA_state = glsl({
             seed: Math.random() * 1000, ...uniforms,
             FP: `
@@ -215,8 +314,6 @@ Add your own CA rule:
             brush();
         }
     });
-
-
 
 
     function step(t) {
