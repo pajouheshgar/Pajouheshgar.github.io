@@ -31,11 +31,31 @@
 <body>
 <canvas id="c" width="400" height="400"></canvas>
 <br><br>
-<button id="reset_state">Reset State</button> <button id="reset_CA">Reset CA Rule</button>
+<button id="reset_state">Reset State</button>
+<button id="reset_CA">Reset CA Rule</button>
 <br><br>
-Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
+Add your own CA rule:
+<input type="text" id="rule_name" placeholder="Rule Name">
 <input type="text" id="rule_code" placeholder="512-bit Binary Code">
 <button id="add_rule">Add Rule</button>
+
+<br>
+
+Current Rule:
+<label id="current_rule" style="
+  display: inline-block;
+  width: 400px;
+  font-size: 10px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;">
+  This is a readonly-looking label
+</label>
+
 <div class="canvas-container">
     <canvas id="imageCanvas" width="953" height="474"></canvas>
     <canvas id="overlayCanvas" width="953" height="474"></canvas>
@@ -224,6 +244,7 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
             }),
         }
         drawOverlay(code);
+        document.getElementById('current_rule').innerText = code;
         return CA;
     }
 
@@ -252,6 +273,7 @@ Add your own CA rule: <input type="text" id="rule_name" placeholder="Rule Name">
     function reset_CA() {
         CA = load_CA(CAs[params.rule].code);
     }
+
     function reset_state() {
         CA_state = glsl({
             seed: Math.random() * 1000, ...uniforms,
