@@ -214,7 +214,7 @@ Current Rule:
     // Add functionality to add a new CA rule
     document.getElementById('add_rule').addEventListener('click', () => {
         const rule_name = document.getElementById('rule_name').value;
-        const rule_code = document.getElementById('rule_code').value;
+        const rule_code = document.getElementById('rule_code').value.replace(/\s/g, "");
         if (rule_name && rule_code && rule_code.length === 512 && /^[01]+$/.test(rule_code)) {
             CAs[rule_name] = {name: rule_name, code: rule_code};
             // Modify the existing gui rule without adding a new element to the gui
