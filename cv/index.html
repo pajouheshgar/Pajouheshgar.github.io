@@ -18,11 +18,15 @@
   a { color: var(--c-accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .page { width: 210mm; min-height: 297mm; margin: 20px auto; padding: 16mm 18mm; background: var(--c-bg); box-shadow: 0 2px 20px rgba(0,0,0,.12); }
-  .header { margin-bottom: 14px; }
+  .header { margin-bottom: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .header-text { flex: 1; }
   .header h1 { font-family: 'Source Serif 4', Georgia, serif; font-size: var(--fs-name); font-weight: 600; letter-spacing: -0.5px; color: var(--c-text); margin-bottom: 7px; }
-  .contact-row { display: flex; flex-wrap: wrap; gap: 5px 16px; font-size: var(--fs-small); color: var(--c-muted); }
+  .contact-row { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: var(--fs-body); color: var(--c-muted); margin-bottom: 4px; }
   .contact-row span::before { content: ''; display: inline-block; width: 3px; height: 3px; background: var(--c-line); border-radius: 50%; vertical-align: middle; margin-right: 7px; }
   .contact-row span:first-child::before { display: none; }
+  .header-photo { width: 105px; height: 105px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 2px solid var(--c-line); background: var(--c-tag-bg); display: flex; align-items: center; justify-content: center; }
+  .header-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .header-photo .placeholder { font-size: 11px; color: var(--c-muted); text-align: center; line-height: 1.3; padding: 4px; }
   .section { margin-top: 13px; }
   .section-title { font-size: var(--fs-section); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--c-accent); border-bottom: 1.5px solid var(--c-accent); padding-bottom: 3px; margin-bottom: 8px; }
   .entry { margin-bottom: 8px; }
@@ -46,9 +50,9 @@
   .pub-title a:hover { color: var(--c-accent); }
   .pub-authors { font-size: var(--fs-small); color: var(--c-muted); }
   .pub-authors .me { font-weight: 600; color: var(--c-text); }
-  .pub-venue { font-size: var(--fs-small); font-weight: 600; color: var(--c-accent); display: inline-block; background: var(--c-tag-bg); padding: 1px 6px; border-radius: 3px; margin-top: 1px; }
+  .pub-venue { font-size: var(--fs-small); font-weight: 600; color: var(--c-accent); display: inline-block; background: var(--c-tag-bg); padding: 1px 6px; border-radius: 3px; margin-top: 1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .pub-note { font-size: var(--fs-small); color: #b45309; font-weight: 600; margin-left: 4px; }
-  .pub-demo { font-size: var(--fs-small); font-weight: 600; color: var(--c-demo); display: inline-block; background: var(--c-demo-bg); padding: 1px 6px; border-radius: 3px; margin-left: 4px; }
+  .pub-demo { font-size: var(--fs-small); font-weight: 600; color: var(--c-demo); display: inline-block; background: var(--c-demo-bg); padding: 1px 6px; border-radius: 3px; margin-left: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .pub-demo a { color: var(--c-demo); }
   .teach-group { margin-bottom: 8px; }
   .teach-group-title { font-weight: 600; font-size: 10.5px; margin-bottom: 4px; }
@@ -73,13 +77,25 @@
 
 <div class="page">
   <header class="header">
-    <h1>Ehsan Pajouheshgar</h1>
-    <div class="contact-row">
-      <span>Lausanne, Switzerland</span>
-      <span>+41 779 858 376</span>
-      <span><a href="mailto:ehsan.pajouheshgar@epfl.ch">ehsan.pajouheshgar@epfl.ch</a></span>
-      <span><a href="https://pajouheshgar.github.io">pajouheshgar.github.io</a></span>
-      <span><a href="https://scholar.google.com/citations?user=bddQ6pQAAAAJ">Google Scholar</a></span>
+    <div class="header-text">
+      <h1>Ehsan Pajouheshgar</h1>
+      <div class="contact-row">
+        <span>Lausanne, Switzerland</span>
+        <span><a href="mailto:e.pajouheshgar@gmail.com">e.pajouheshgar@gmail.com</a></span>
+        <span><a href="mailto:ehsan.pajouheshgar@epfl.ch">ehsan.pajouheshgar@epfl.ch</a></span>
+      </div>
+      <div class="contact-row">
+        <span><a href="https://pajouheshgar.github.io">pajouheshgar.github.io</a></span>
+        <span><a href="https://scholar.google.com/citations?user=bddQ6pQAAAAJ">Google Scholar</a></span>
+        <span><a href="https://www.linkedin.com/in/ehsan-pajouheshgar-bb906b12b/">LinkedIn</a></span>
+        <span><a href="https://x.com/Esychology">X (Twitter)</a></span>
+      </div>
+    </div>
+    <div class="header-photo">
+      <!-- ✏️ Replace the src below with the path to your photo, e.g. src="photo.png" -->
+      <img src="../images/portrait.png" alt="Ehsan Pajouheshgar"
+           onerror="this.style.display='none'; this.parentElement.querySelector('.placeholder').style.display='block';">
+      <div class="placeholder" style="display:none;">Replace<br><b>photo.png</b><br>with your image</div>
     </div>
   </header>
 
@@ -87,14 +103,14 @@
     <div class="section-title">Education</div>
     <div class="entry">
       <div class="entry-header">
-        <div><span class="entry-title">Postdoctoral Researcher — Computer Science &amp; Applied Mathematics</span> <span class="entry-org">— École Polytechnique Fédérale de Lausanne (EPFL)</span></div>
+        <div><span class="entry-title">Postdoctoral Researcher — Computer Science &amp; Applied Mathematics</span> <span class="entry-org">— EPFL</span></div>
         <div class="entry-date">Aug 2025 – Present</div>
       </div>
       <div class="entry-detail">Chair of Statistical Field Theory (Prof. C. Hongler) · Image and Visual Representation Lab (Prof. S. Süsstrunk)</div>
     </div>
     <div class="entry">
       <div class="entry-header">
-        <div><span class="entry-title">Ph.D. in Computer Science</span> <span class="entry-org">— École Polytechnique Fédérale de Lausanne (EPFL) — GPA: 5.78 / 6</span></div>
+        <div><span class="entry-title">Ph.D. in Computer Science</span> <span class="entry-org">— EPFL — GPA: 5.78 / 6</span></div>
         <div class="entry-date">Sep 2020 – Jul 2025</div>
       </div>
       <div class="entry-detail">Supervisor: Prof. Sabine Süsstrunk</div>
@@ -241,7 +257,6 @@
       <div class="teach-item"><div class="teach-date">Fall 2023</div><div class="teach-course"><strong>Information, Computation, Communication</strong> <span class="teach-level">(BSc)</span></div></div>
       <div class="teach-item"><div class="teach-date">Fall 2022</div><div class="teach-course"><strong>Linear Algebra</strong> <span class="teach-level">(BSc)</span></div></div>
       <div class="teach-item"><div class="teach-date">Fall 2021</div><div class="teach-course"><strong>Machine Learning</strong> <span class="teach-level">(MSc)</span></div></div>
-      
     </div>
     <div class="teach-group">
       <div class="teach-group-title">Teaching Assistant <span class="teach-group-org">— Sharif University of Technology, Tehran</span></div>
