@@ -1,0 +1,45 @@
+---
+layout: layouts/base.njk
+extraCss:
+  - /assets/css/blog.css
+---
+<div class="container page-body">
+  <article>
+    <header class="post-header">
+      <h1 class="post-title">{{ title }}</h1>
+      <div class="post-meta">
+        <time datetime="{{ page.date | isoDate }}">{{ page.date | dateDisplay }}</time>
+        {% if tags %}
+          <span class="tags">
+            {% for tag in tags %}
+              <a href="/blog/?tag={{ tag }}" class="tag">{{ tag }}</a>
+            {% endfor %}
+          </span>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-main">
+        <div class="post-body">
+          {{ content | safe }}
+        </div>
+
+        <footer class="post-footer">
+          <a href="/blog/" class="post-nav-link">← all posts</a>
+        </footer>
+      </div>
+
+      {% if sidenotes %}
+      <aside class="post-sidenotes" aria-label="Sidenotes">
+        {% for note in sidenotes %}
+          <div class="sidenote">
+            <span class="sidenote-label">{{ note.label or ("note " + loop.index) }}</span>
+            {{ note.text }}
+          </div>
+        {% endfor %}
+      </aside>
+      {% endif %}
+    </div>
+  </article>
+</div>

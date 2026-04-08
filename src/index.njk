@@ -1,0 +1,84 @@
+---
+layout: layouts/base.njk
+title: ""
+description: "Ehsan Pajouheshgar — Postdoc researcher at EPFL, working on Self-organizing systems with a Computer Vision/Graphics twist."
+---
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <h1 class="hero-name"><span class="prompt">~/</span>ehsan pajouheshgar</h1>
+      <p class="hero-role">// postdoctoral researcher · epfl</p>
+
+      <p class="hero-bio">
+        I am a Postdoctoral Researcher at <a href="https://www.epfl.ch/labs/ivrl/">EPFL IVRL</a> and the
+        <a href="https://www.epfl.ch/labs/csft/">Chair of Statistical Field Theory</a>.
+        My research sits at the intersection of
+        <strong>Self-Organizing Systems</strong>, Computer Vision, Computer Graphics, and Artificial Life —
+        exploring how simple local rules give rise to complex global behavior.
+        I did my PhD at EPFL (supervised by Sabine Süsstrunk) and my undergraduate at
+        Sharif University of Technology (Computer Engineering + Math minor).
+      </p>
+
+      <div class="hero-links">
+        <a href="mailto:e.pajouheshgar@gmail.com" class="hero-link">email</a>
+        <a href="/cv/" class="hero-link">cv</a>
+        <a href="https://scholar.google.com/citations?user=bddQ6pQAAAAJ&hl=en" class="hero-link">google scholar</a>
+        <a href="https://github.com/TheDevilWillBeBee" class="hero-link">github</a>
+        <a href="https://x.com/Esychology" class="hero-link">twitter</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="container page-body" style="padding-top:0">
+
+  <!-- WHAT'S NEW -->
+  <section style="margin-bottom:3rem">
+    <h2 class="section-heading">what's new</h2>
+    <div class="news-list">
+      {% for item in news %}
+        <div class="news-item">
+          <span class="news-date">{{ item.date | dateDisplay }}</span>
+          <span class="news-text">{{ item.text | safe }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- PUBLICATION HIGHLIGHTS (3 most recent) -->
+  <section style="margin-bottom:3rem">
+    <h2 class="section-heading">selected publications</h2>
+    <div class="pub-grid">
+      {% for pub in publications.highlights %}
+        {% if pub.status != "under-submission" %}
+          {% include "components/pub-card.njk" %}
+        {% endif %}
+      {% endfor %}
+    </div>
+    <p style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted)">
+      <a href="/publications/">view all publications →</a>
+    </p>
+  </section>
+
+  <!-- AWARDS -->
+  <section style="margin-bottom:3rem">
+    <details class="awards-details">
+      <summary>awards &amp; honors</summary>
+      <div class="awards-list">
+        {% for award in awards %}
+          <div class="award-item">
+            <span class="award-date">{{ award.date }}</span>
+            <div>
+              <div class="award-name">{{ award.name }}</div>
+              <div class="award-venue">{{ award.venue }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </details>
+  </section>
+
+</div>

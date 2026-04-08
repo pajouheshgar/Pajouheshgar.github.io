@@ -1,0 +1,37 @@
+---
+layout: layouts/page.njk
+title: "Backlog"
+description: "Project ideas and open questions Ehsan Pajouheshgar finds interesting and hopes to explore."
+---
+
+<h1 class="page-title">// backlog</h1>
+<p class="page-subtitle">ideas I find interesting · open for collaboration · reach out if any of these resonate</p>
+
+<div class="blog-filter" style="margin-bottom:2rem">
+  <button class="tag active" data-backlog-filter="all">all</button>
+  <button class="tag" data-backlog-filter="nca">nca</button>
+  <button class="tag" data-backlog-filter="math">math</button>
+  <button class="tag" data-backlog-filter="biology">biology</button>
+  <button class="tag" data-backlog-filter="physics">physics</button>
+  <button class="tag" data-backlog-filter="graphics">graphics</button>
+  <button class="tag" data-backlog-filter="deep-learning">deep-learning</button>
+  <button class="tag" data-backlog-filter="theory">theory</button>
+  <button class="tag" data-backlog-filter="artificial-life">artificial-life</button>
+  <button class="tag" data-backlog-filter="complex-systems">complex-systems</button>
+  <button class="tag" data-backlog-filter="evolution">evolution</button>
+</div>
+
+<div class="backlog-grid">
+  {% for item in backlog %}
+    <div class="backlog-card" data-backlog-tags="{{ item.tags | join(',') }}">
+      <div class="backlog-status {{ item.status }}">// {{ item.status }}</div>
+      <div class="backlog-title">{{ item.title }}</div>
+      <p class="backlog-desc">{{ item.description }}</p>
+      <div class="tags">
+        {% for tag in item.tags %}
+          <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>

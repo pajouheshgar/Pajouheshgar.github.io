@@ -1,0 +1,49 @@
+<div class="pub-card {% if not pub.image and not pub.video %}pub-card--no-media{% endif %}">
+  {% if pub.image or pub.video %}
+  <div class="pub-card-media">
+    {% if pub.image %}
+      <img src="{{ pub.image }}" alt="{{ pub.title }}" loading="lazy">
+    {% endif %}
+    {% if pub.video %}
+      <video src="{{ pub.video }}" loop muted playsinline preload="none"></video>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="pub-card-body">
+    {% if pub.awards %}
+      <div class="pub-awards">
+        {% for award in pub.awards %}
+          <span class="award-badge">★ {{ award }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="pub-title">{{ pub.title }}</div>
+    <div class="pub-authors">
+      {% set authorList = pub.authors.split(", ") %}
+      {% for author in authorList %}
+        {% if "Pajouheshgar" in author %}<span class="me">{{ author }}</span>{% else %}{{ author }}{% endif %}{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </div>
+    <div class="pub-venue">{{ pub.venue }}, {{ pub.year }}</div>
+    {% if pub.description %}
+      <p style="font-size:0.82rem;color:var(--text-muted);margin:0.3rem 0 0.5rem;line-height:1.55">{{ pub.description }}</p>
+    {% endif %}
+    <div class="pub-links">
+      {% if pub.links.project %}
+        <a href="{{ pub.links.project }}" class="pub-link" target="_blank" rel="noopener">project</a>
+      {% endif %}
+      {% if pub.links.demo %}
+        <a href="{{ pub.links.demo }}" class="pub-link" target="_blank" rel="noopener">demo</a>
+      {% endif %}
+      {% if pub.links.arxiv %}
+        <a href="{{ pub.links.arxiv }}" class="pub-link" target="_blank" rel="noopener">arXiv</a>
+      {% endif %}
+      {% if pub.links.code %}
+        <a href="{{ pub.links.code }}" class="pub-link" target="_blank" rel="noopener">code</a>
+      {% endif %}
+      {% if pub.links.paper %}
+        <a href="{{ pub.links.paper }}" class="pub-link" target="_blank" rel="noopener">paper</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

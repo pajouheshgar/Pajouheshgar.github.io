@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if title %}{{ title }} — {% endif %}Ehsan Pajouheshgar</title>
+  <meta name="description" content="{{ description or 'Ehsan Pajouheshgar — Researcher in Neural Cellular Automata, Computer Vision, and Artificial Life.' }}">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{% if title %}{{ title }} — {% endif %}Ehsan Pajouheshgar">
+  <meta property="og:description" content="{{ description or 'Ehsan Pajouheshgar — Researcher in Neural Cellular Automata, Computer Vision, and Artificial Life.' }}">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+  <!-- Prism (syntax highlight) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+
+  <!-- Site CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css">
+  {% if extraCss %}
+    {% for css in extraCss %}
+      <link rel="stylesheet" href="{{ css }}">
+    {% endfor %}
+  {% endif %}
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+
+  <!-- Theme: apply stored pref before paint to avoid flash -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('ep-theme');
+      if (t === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSSRCE808M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-CSSRCE808M');
+  </script>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="site-nav" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <a href="/" class="nav-logo"><span class="prompt">~/</span>pajouheshgar</a>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <rect y="3" width="20" height="2" rx="1"/>
+          <rect y="9" width="20" height="2" rx="1"/>
+          <rect y="15" width="20" height="2" rx="1"/>
+        </svg>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/">home</a></li>
+        <li><a href="/publications/">publications</a></li>
+        <li><a href="/blog/">blog</a></li>
+        <li><a href="/backlog/">backlog</a></li>
+      </ul>
+      <button class="nav-theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">[dark]</button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    {{ content | safe }}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <span>© 2025 Ehsan Pajouheshgar</span>
+        <span><a href="/legacy/">legacy site</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="/assets/js/main.js"></script>
+  {% if extraJs %}
+    {% for js in extraJs %}
+      <script src="{{ js }}"></script>
+    {% endfor %}
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,30 @@
+---
+layout: layouts/page.njk
+title: "Publications"
+description: "Research publications by Ehsan Pajouheshgar in Neural Cellular Automata, Computer Vision, and Computer Graphics."
+---
+
+<h1 class="page-title">// publications</h1>
+<p class="page-subtitle">Neural Cellular Automata · Computer Vision · Computer Graphics · Artificial Life</p>
+
+<!-- HIGHLIGHTED PAPERS -->
+<section style="margin-bottom:3.5rem">
+  <h2 class="section-heading">selected works</h2>
+  <div class="pub-grid">
+    {% for pub in publications.highlights %}
+      {% if pub.status != "under-submission" %}
+        {% include "components/pub-card.njk" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<!-- FULL LIST — sorted by year, under-submission hidden -->
+<section>
+  <h2 class="section-heading">all publications</h2>
+  <div class="pub-list">
+    {% for pub in publications | pubsVisible %}
+      {% include "components/pub-list-item.njk" %}
+    {% endfor %}
+  </div>
+</section>

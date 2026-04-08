@@ -1,0 +1,43 @@
+<details class="pub-list-item">
+  <summary>
+    <div class="pub-list-year">{{ pub.year }}</div>
+    <div class="pub-list-summary">
+      <div class="pub-list-title">{{ pub.title }}</div>
+      <div class="pub-list-meta">
+        <span class="venue">{{ pub.venue }}</span>
+        {% if pub.awards %}
+          {% for award in pub.awards %}
+            · <span class="pub-list-award">★ {{ award }}</span>
+          {% endfor %}
+        {% endif %}
+        {% if pub.links.demo %}
+          <span class="pub-list-demo-badge">⬡ demo</span>
+        {% endif %}
+      </div>
+    </div>
+    <span class="pub-list-chevron" aria-hidden="true">›</span>
+  </summary>
+  <div class="pub-list-body">
+    <p class="pub-list-authors">{{ pub.authors }}</p>
+    {% if pub.description %}
+      <p class="pub-list-desc">{{ pub.description }}</p>
+    {% endif %}
+    <div class="pub-links">
+      {% if pub.links.project %}
+        <a href="{{ pub.links.project }}" class="pub-link" target="_blank" rel="noopener">project</a>
+      {% endif %}
+      {% if pub.links.demo %}
+        <a href="{{ pub.links.demo }}" class="pub-link" target="_blank" rel="noopener">demo</a>
+      {% endif %}
+      {% if pub.links.arxiv %}
+        <a href="{{ pub.links.arxiv }}" class="pub-link" target="_blank" rel="noopener">arXiv</a>
+      {% endif %}
+      {% if pub.links.code %}
+        <a href="{{ pub.links.code }}" class="pub-link" target="_blank" rel="noopener">code</a>
+      {% endif %}
+      {% if pub.links.paper %}
+        <a href="{{ pub.links.paper }}" class="pub-link" target="_blank" rel="noopener">paper</a>
+      {% endif %}
+    </div>
+  </div>
+</details>

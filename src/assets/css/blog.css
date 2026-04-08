@@ -1,0 +1,162 @@
+/* ============================================================
+   BLOG POST LAYOUT
+   ============================================================ */
+
+.post-layout {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 3rem;
+  align-items: start;
+}
+
+.post-main { min-width: 0; }
+
+/* Post header */
+.post-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.post-title {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+.post-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Post body — uses serif for body text */
+.post-body {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.post-body h1,
+.post-body h2,
+.post-body h3,
+.post-body h4 {
+  font-family: var(--font-mono);
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+.post-body h2 { font-size: 1.15rem; }
+.post-body h3 { font-size: 1rem; }
+
+.post-body p { margin-bottom: 1.25rem; }
+
+.post-body ul, .post-body ol {
+  margin: 0 0 1.25rem 1.5rem;
+}
+.post-body li { margin-bottom: 0.4rem; }
+
+.post-body a { color: var(--accent); }
+.post-body a:hover { color: var(--accent-hover); }
+
+.post-body img {
+  border-radius: var(--radius);
+  margin: 1.5rem auto;
+  border: 1px solid var(--border);
+}
+
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  margin: 1.5rem 0;
+}
+.post-body th, .post-body td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.post-body th { background: var(--surface); font-family: var(--font-mono); font-size: 0.78rem; }
+
+/* Footnotes */
+.post-body .footnotes {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.post-body .footnotes ol { margin-left: 1.25rem; }
+.post-body sup a {
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0 0.1em;
+}
+
+/* Sidenotes (right column) */
+.post-sidenotes {
+  position: sticky;
+  top: calc(var(--nav-h) + 2rem);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.sidenote {
+  border-left: 2px solid var(--border);
+  padding-left: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.sidenote-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+/* KaTeX overrides for theme */
+.katex { font-size: 1em; }
+.post-body .katex-display {
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  margin: 1.25rem 0;
+}
+
+/* Post footer */
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.post-nav-link {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+.post-nav-link:hover { text-decoration: underline; }
+
+/* Responsive: collapse sidenotes on small screens */
+@media (max-width: 860px) {
+  .post-layout {
+    grid-template-columns: 1fr;
+  }
+  .post-sidenotes {
+    position: static;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+  }
+  .post-title { font-size: 1.3rem; }
+}

@@ -1,0 +1,40 @@
+---
+layout: layouts/page.njk
+title: "Blog"
+description: "Writing by Ehsan Pajouheshgar on research, math, physics, biology, and open questions."
+---
+
+<h1 class="page-title">// blog</h1>
+<p class="page-subtitle">research notes · open questions · project write-ups</p>
+
+<!-- TAG FILTER -->
+<div class="blog-filter">
+  <button class="tag active" data-tag-filter="all">all</button>
+  {% for tag in collections.tagList %}
+    <button class="tag" data-tag-filter="{{ tag }}">{{ tag }}</button>
+  {% endfor %}
+</div>
+
+<!-- FEED -->
+<div class="blog-feed">
+  {% for post in collections.posts %}
+    <div class="blog-item" data-tags="{{ post.data.tags | join(',') }}">
+      <div class="blog-date">
+        <span>{{ post.date | dateDisplay }}</span>
+      </div>
+      <div>
+        <a href="{{ post.url }}" class="blog-item-title">{{ post.data.title }}</a>
+        {% if post.data.description %}
+          <p class="blog-item-desc">{{ post.data.description }}</p>
+        {% endif %}
+        <div class="tags">
+          {% for tag in post.data.tags %}
+            <button class="tag" data-tag-filter="{{ tag }}">{{ tag }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.85rem">// no posts yet — check back soon.</p>
+  {% endfor %}
+</div>

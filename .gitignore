@@ -1,2 +1,39 @@
+# Build output
+_site/
+
+# Dependencies
+node_modules/
+
+# 11ty cache (used by @11ty/eleventy-fetch)
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.*
+
+# Editor / IDE
 .idea/
+.vscode/
+*.suo
+*.user
+
+# OS files — macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# OS files — Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Local config overrides
+*.local
+
+# Claude Code
+.claude

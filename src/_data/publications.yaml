@@ -1,0 +1,153 @@
+highlights:
+  - title: "Exploring the Landscape of Non-Equilibrium Memories with Neural Cellular Automata"
+    venue: "Physical Review Letters"
+    year: 2025
+    status: published
+    authors: "Ehsan Pajouheshgar, A. Bhardwaj, N. Selub, E. Lake"
+    description: "We use Neural Cellular Automata to map the landscape of non-equilibrium memory states in physical systems, revealing a rich structure of attractors and transitions that connects ideas from statistical physics and machine learning."
+    links:
+      arxiv: "https://arxiv.org/pdf/2508.15726"
+      demo: "https://memorynca.github.io/2D"
+
+  - title: "Mesh Neural Cellular Automata"
+    venue: "ACM TOG / SIGGRAPH"
+    year: 2024
+    status: published
+    authors: "Ehsan Pajouheshgar, Yitao Xu, Alexander Mordvintsev, Eyvind Niklasson, Tuur Stuyck, Sabine Süsstrunk"
+    description: "MeshNCA extends Neural Cellular Automata to operate directly on triangle meshes, enabling real-time dynamic texture synthesis on arbitrary 3D surfaces without UV unwrapping or global communication."
+    image: "/legacy/images/meshnca.png"
+    video: "/legacy/images/meshnca.mp4"
+    links:
+      demo: "https://meshnca.github.io/"
+      arxiv: "https://arxiv.org/abs/2311.02820"
+      code: "https://github.com/IVRL/MeshNCA"
+
+  - title: "NoiseNCA: Noisy Seed Improves Spatio-Temporal Continuity of Neural Cellular Automata"
+    venue: "ALife"
+    year: 2024
+    status: published
+    awards:
+      - "Best Student Paper Award"
+    authors: "Ehsan Pajouheshgar, Yitao Xu, Sabine Süsstrunk"
+    description: "We show that initializing NCA with structured noise instead of a single seed cell dramatically improves spatial and temporal continuity of the generated patterns, enabling seamless tiling and stable long-horizon evolution."
+    image: "/legacy/images/noisenca.png"
+    video: "/legacy/images/noisenca.mp4"
+    links:
+      demo: "https://noisenca.github.io/"
+      arxiv: "https://arxiv.org/abs/2404.06279"
+      code: "https://github.com/IVRL/NoiseNCA"
+
+  - title: "DyNCA: Real-time Dynamic Texture Synthesis Using Neural Cellular Automata"
+    venue: "CVPR"
+    year: 2023
+    status: published
+    authors: "Ehsan Pajouheshgar, Yitao Xu, Tuur Stuyck, Sabine Süsstrunk"
+    description: "DyNCA synthesizes temporally coherent dynamic textures in real-time by training a lightweight NCA with optical-flow and motion statistics losses derived from a single example video."
+    image: "/legacy/images/dynca.png"
+    video: "/legacy/images/dynca.mp4"
+    links:
+      demo: "https://dynca.github.io/"
+      arxiv: "https://arxiv.org/abs/2211.11417"
+      code: "https://github.com/IVRL/DyNCA"
+
+other:
+  - title: "Neural Particle Automata: Learning Self-Organizing Particle Dynamics"
+    venue: "SIGGRAPH"
+    year: 2026
+    status: under-submission
+    authors: "H. Kim*, Ehsan Pajouheshgar*, S. Süsstrunk, W. Jakob, J. Park"
+    description: "We introduce Neural Particle Automata, a framework where particles learn local interaction rules that give rise to self-organizing collective dynamics, unifying particle simulation and cellular automata under a differentiable learning paradigm."
+    links:
+      demo: "https://selforg-npa.github.io"
+
+  - title: "Neural Cellular Automata: From Cells to Pixels"
+    venue: "SIGGRAPH"
+    year: 2026
+    status: under-submission
+    authors: "Ehsan Pajouheshgar, Y. Xu, A. Abbasi, A. Mordvintsev, W. Jakob, S. Süsstrunk"
+    description: "A comprehensive study of Neural Cellular Automata for visual synthesis tasks, unifying texture generation, dynamic patterns, and 3D surface synthesis under a single framework and tracing the design choices that matter most."
+    links:
+      demo: "https://cells2pixels.github.io"
+
+  - title: "The Mokume Dataset and Inverse Modeling of Solid Wood Textures"
+    venue: "ACM TOG / SIGGRAPH"
+    year: 2025
+    status: published
+    authors: "M. Larsson, H. Yamaguchi, Ehsan Pajouheshgar, I-C. Shen, K. Tojo, C-M. Chang, et al."
+    description: "We present Mokume, a dataset of high-resolution solid wood texture measurements, along with an inverse modeling pipeline that recovers volumetric wood microstructure from surface appearance for physically accurate rendering."
+    links:
+      project: "https://mokumeproject.github.io/"
+
+  - title: "Volumetric Temporal Texture Synthesis for Smoke Stylization using Neural Cellular Automata"
+    venue: "BMVC"
+    year: 2025
+    status: published
+    awards:
+      - "Best Poster Award"
+    authors: "D. Wang, Ehsan Pajouheshgar, Y. Xu, T. Zhang, S. Süsstrunk"
+    description: "We extend NCA-based texture synthesis to 3D+time, enabling stylization of volumetric smoke simulations. The model learns coherent spatio-temporal patterns from a single example and applies them in real-time to fluid simulations."
+    links:
+      arxiv: "https://arxiv.org/pdf/2502.09631"
+
+  - title: "Canonical Latent Representations in Conditional Diffusion Models"
+    venue: "Preprint"
+    year: 2025
+    status: preprint
+    authors: "Y. Xu, T. Zhang, Ehsan Pajouheshgar, S. Süsstrunk"
+    description: "We identify and characterize canonical latent representations that emerge in conditional diffusion models, showing that conditioning signals induce structured geometry in the latent space that can be exploited for controllable generation."
+    links:
+      arxiv: "https://arxiv.org/abs/2506.09955"
+
+  - title: "CLIPasso: Semantically-Aware Object Sketching"
+    venue: "ACM TOG / SIGGRAPH"
+    year: 2022
+    status: published
+    awards:
+      - "Best Paper Award"
+    authors: "Yael Vinker, Ehsan Pajouheshgar, Jessica Y. Bo, Roman Christian Bachmann, Amit Haim Bermano, Daniel Cohen-Or, Amir Zamir, Ariel Shamir"
+    description: "CLIPasso abstracts any object into a sketch by jointly optimizing the position and shape of Bézier strokes, using a CLIP-based perceptual loss to preserve semantic identity across arbitrary levels of abstraction."
+    image: "/legacy/images/clipasso.png"
+    links:
+      project: "https://clipasso.github.io/clipasso/"
+      demo: "https://replicate.com/yael-vinker/clipasso"
+      arxiv: "https://arxiv.org/abs/2202.05822"
+      code: "https://github.com/yael-vinker/CLIPasso"
+
+  - title: "Emergent Dynamics in Neural Cellular Automata"
+    venue: "ALife"
+    year: 2024
+    status: published
+    authors: "Y. Xu, Ehsan Pajouheshgar, S. Süsstrunk"
+    description: "We systematically study the emergent dynamical behaviors that arise during and after NCA training — including oscillations, traveling waves, and chaos — and show how these can be controlled through architectural and loss design choices."
+    links:
+      arxiv: "https://arxiv.org/abs/2404.06406"
+
+  - title: "Optimizing Latent Space Directions For GAN-based Local Image Editing"
+    venue: "ICASSP"
+    year: 2022
+    status: published
+    authors: "Ehsan Pajouheshgar, Tong Zhang, Sabine Süsstrunk"
+    description: "We propose LELSD, a method that learns semantically meaningful directions in GAN latent space for localized image editing, enabling precise attribute changes in specific spatial regions without affecting the rest of the image."
+    image: "/legacy/images/lelsd.png"
+    links:
+      arxiv: "https://arxiv.org/abs/2111.12583"
+      code: "https://github.com/IVRL/LELSD"
+
+  - title: "ChOracle: A Unified Statistical Framework for Churn Prediction"
+    venue: "IEEE TKDE"
+    year: 2020
+    status: published
+    authors: "A. Khodadadi, A. Hosseini, Ehsan Pajouheshgar, F. Mansouri, H.R. Rabiee"
+    description: "ChOracle formulates customer churn prediction as a unified probabilistic inference problem, jointly modeling user activity patterns and churn events within a single statistical framework that outperforms feature-engineering baselines."
+    links:
+      paper: "https://ieeexplore.ieee.org/abstract/document/9109662"
+
+  - title: "Back to Square One: Probabilistic Trajectory Forecasting Without Bells and Whistles"
+    venue: "NeurIPS Workshop"
+    year: 2018
+    status: published
+    authors: "Ehsan Pajouheshgar, Christoph H. Lampert"
+    description: "We revisit trajectory forecasting and show that a simple probabilistic baseline — without complex architectures or social interaction models — matches or exceeds state-of-the-art methods on standard benchmarks, questioning the field's evaluation practices."
+    image: "/legacy/images/ptf.png"
+    links:
+      arxiv: "https://arxiv.org/abs/1812.02984"

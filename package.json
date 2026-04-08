@@ -1,0 +1,17 @@
+{
+  "name": "pajouheshgar-site",
+  "version": "1.0.0",
+  "description": "Personal academic website",
+  "scripts": {
+    "build": "eleventy",
+    "preview": "eleventy --serve",
+    "clean": "rm -rf _site"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
+    "markdown-it-footnote": "^3.0.3",
+    "markdown-it-attrs": "^4.2.0",
+    "markdown-it-katex": "^2.0.3"
+  }
+}
