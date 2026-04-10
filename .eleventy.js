@@ -41,6 +41,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("legacy");
   eleventyConfig.addPassthroughCopy({ "cv": "cv" }); // root-level cv/ → _site/cv/
   eleventyConfig.addPassthroughCopy({ "demos": "demos" }); // root-level demos/ → _site/demos/
+  eleventyConfig.addPassthroughCopy({ ".nojekyll": ".nojekyll" }); // prevent Jekyll on gh-pages
 
   // Collections
   eleventyConfig.addCollection("posts", function (collectionApi) {
