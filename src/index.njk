@@ -40,10 +40,12 @@ description: "Ehsan Pajouheshgar — Postdoc researcher at EPFL, working on Self
     <h2 class="section-heading">what's new</h2>
     <div class="news-list">
       {% for item in news %}
+        {% if item.visible != false %}
         <div class="news-item">
           <span class="news-date">{{ item.date | dateDisplay }}</span>
           <span class="news-text">{{ item.text | safe }}</span>
         </div>
+        {% endif %}
       {% endfor %}
     </div>
   </section>

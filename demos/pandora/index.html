@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Particle Lenia - WebGPU</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a14; color: #ccc; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+canvas { display: block; width: 100%; height: 100vh; }
+
+#controls {
+    position: fixed; top: 10px; right: 10px;
+    background: rgba(10, 10, 20, 0.85); border: 1px solid #333;
+    border-radius: 8px; padding: 0; width: 290px;
+    font-size: 13px; z-index: 10;
+    backdrop-filter: blur(8px);
+}
+#controls h2 { font-size: 15px; margin-bottom: 10px; color: #eee; }
+#controls details > summary { list-style: none; }
+#controls details > summary::-webkit-details-marker { display: none; }
+.controls-summary {
+    font-size: 15px; font-weight: 600; color: #eee;
+    cursor: pointer; user-select: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; margin-bottom: 0;
+}
+.controls-body { padding: 4px 14px 14px; }
+.controls-toggle-icon {
+    font-size: 10px; color: #7af;
+    display: inline-block;
+    transition: transform 0.15s;
+}
+#main-controls-details[open] .controls-toggle-icon { transform: rotate(90deg); }
+#main-controls-details[open] .controls-summary { margin-bottom: 10px; }
+/* Override the generic #controls details border — only the inner details should have it */
+#main-controls-details { margin-top: 0; border-top: none; padding-top: 0; }
+#controls label { display: block; margin-top: 8px; color: #aaa; }
+#controls input[type=range], #controls select { width: 100%; margin-top: 2px; }
+#controls .row { display: flex; justify-content: space-between; align-items: center; }
+#controls .val { color: #7af; font-variant-numeric: tabular-nums; }
+#controls details {
+    margin-top: 10px;
+    border-top: 1px solid #2e2e45;
+    padding-top: 8px;
+}
+#controls summary {
+    cursor: pointer;
+    color: #9db7ff;
+    font-size: 12px;
+    user-select: none;
+}
+#controls button {
+    margin-top: 6px; padding: 5px 10px; border: 1px solid #555;
+    background: #222; color: #ccc; border-radius: 4px; cursor: pointer;
+    font-size: 12px;
+}
+#controls button:hover { background: #333; }
+.btn-row { display: flex; gap: 6px; margin-top: 10px; }
+.btn-row button { flex: 1; }
+
+.stats-bar {
+    padding: 8px 14px;
+    font-size: 12px; font-family: monospace;
+    border-bottom: 1px solid #2e2e45;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.stats-bar .label { color: #888; }
+.stats-bar .value { color: #7af; }
+.stat-sep { color: #444; }
+
+#species-panel {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 360px;
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+    background: rgba(8, 10, 22, 0.86);
+    border: 1px solid #2f3758;
+    border-radius: 8px;
+    padding: 8px 10px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+#species-panel details { margin: 0; }
+#species-panel summary {
+    cursor: pointer;
+    color: #cfe0ff;
+    font-size: 13px;
+    user-select: none;
+    font-weight: 600;
+}
+#species-panel summary .hint {
+    color: #7f8bb2;
+    font-weight: 400;
+    font-size: 11px;
+}
+#species-cards {
+    margin-top: 8px;
+    display: grid;
+    gap: 10px;
+}
+.species-card {
+    border: 1px solid #2f3758;
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(30, 36, 62, 0.40), rgba(20, 24, 42, 0.45));
+    padding: 8px;
+}
+.species-card summary {
+    list-style: none;
+}
+.species-card summary::-webkit-details-marker {
+    display: none;
+}
+.species-card[open] {
+    box-shadow: inset 0 0 0 1px rgba(120, 140, 200, 0.15);
+}
+.species-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.species-toggle {
+    color: #7f8bb2;
+    font-size: 10px;
+    margin-left: 6px;
+}
+.species-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #e4ebff;
+    font-weight: 600;
+}
+.species-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.species-wk {
+    color: #98a6cf;
+    font-family: monospace;
+    font-size: 11px;
+}
+.species-body { margin-top: 6px; }
+.plot-block { margin-bottom: 6px; }
+.plot-label {
+    font-size: 11px;
+    color: #aab7dd;
+    margin-bottom: 2px;
+}
+.math-inline {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-style: italic;
+    letter-spacing: 0.1px;
+}
+.gauss-svg {
+    width: 100%;
+    height: 72px;
+    display: block;
+    border: 1px solid #2a3150;
+    border-radius: 6px;
+    background: radial-gradient(circle at top, rgba(62, 74, 120, 0.20), rgba(12, 16, 32, 0.60));
+}
+.species-slider { margin-top: 4px; }
+.species-slider .slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #aab7dd;
+}
+.species-slider .slider-val {
+    color: #d4dcff;
+    font-family: monospace;
+}
+.species-slider input[type=range] {
+    width: 100%;
+    margin-top: 2px;
+}
+
+@media (max-width: 980px) {
+    #species-panel {
+        width: min(360px, calc(100vw - 20px));
+        max-height: 45vh;
+    }
+}
+
+#error-msg {
+    display: none; position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1a0a0a; border: 2px solid #a33;
+    border-radius: 12px; padding: 30px; max-width: 500px;
+    text-align: center; z-index: 100;
+}
+#error-msg h2 { color: #f55; margin-bottom: 12px; }
+#error-msg p { color: #ccc; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="species-panel">
+    <details id="species-details">
+        <summary>Species Parameters</summary>
+        <div id="species-cards"></div>
+    </details>
+</div>
+
+<div id="controls">
+    <div class="stats-bar">
+        <span class="label">FPS:</span> <span class="value" id="fps">0</span>
+        <span class="stat-sep">·</span>
+        <span class="label">SPS:</span> <span class="value" id="sps">0</span>
+        <span class="stat-sep">·</span>
+        <span class="label">Step:</span> <span class="value" id="step-count">0</span>
+    </div>
+    <details id="main-controls-details">
+    <summary class="controls-summary">Particle Lenia <span class="controls-toggle-icon">▶</span></summary>
+    <div class="controls-body">
+
+    <label><div class="row">Particles <span class="val" id="particle-val">16,384 (2^14)</span></div></label>
+    <input type="range" id="particle-count" min="12" max="20" step="1" value="14">
+
+    <label><div class="row">Species <span class="val" id="species-val">2</span></div></label>
+    <select id="species-count">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+    </select>
+
+    <label><div class="row">dt <span class="val" id="dt-val">0.25</span></div></label>
+    <input type="range" id="dt" min="0.01" max="1.0" step="0.01" value="0.25">
+
+    <label><div class="row">Steps/frame <span class="val" id="spf-val">8</span></div></label>
+    <input type="range" id="spf" min="1" max="64" step="1" value="8">
+
+    <label><div class="row">Point size <span class="val" id="ps-val">3.0</span></div></label>
+    <input type="range" id="point-size" min="0.5" max="20" step="0.5" value="3.0">
+
+    <details id="advanced-controls">
+        <summary>Advanced Options</summary>
+
+        <label><div class="row">Box size <span class="val" id="box-val">256</span></div></label>
+        <input type="range" id="box-size" min="64" max="2048" step="32" value="256">
+
+        <label><div class="row">HashGrid size <span class="val" id="grid-val">64 (2^6)</span></div></label>
+        <input type="range" id="grid-size-exp" min="5" max="11" step="1" value="6">
+        <p style="margin-top:6px;font-size:11px;color:#666;">Grid size is constrained to powers of two.</p>
+
+        <label><div class="row">Init range <span class="val" id="init-range-val">0.80 × box</span></div></label>
+        <input type="range" id="init-range" min="0.05" max="1.0" step="0.05" value="0.8">
+    </details>
+
+    <div class="btn-row">
+        <button id="btn-pause">Pause</button>
+        <button id="btn-reset">Reset</button>
+        <button id="btn-randomize">Randomize</button>
+    </div>
+    <div class="btn-row">
+        <button id="btn-save-config">Save Config</button>
+        <button id="btn-load-config">Load Config</button>
+    </div>
+    <input id="config-file-input" type="file" accept="application/json" style="display:none;">
+    <p style="margin-top:10px;font-size:11px;color:#666;">
+        Space: pause &bull; R: reset &bull; N: randomize<br>
+        Scroll: zoom &bull; Drag: pan
+    </p>
+    </div>
+    </details>
+</div>
+
+<div id="error-msg">
+    <h2>WebGPU Not Available</h2>
+    <p>This demo requires WebGPU support. Please use a recent version of Chrome, Edge, or Firefox with WebGPU enabled.</p>
+</div>
+
+<script type="module">
+import { LeniaSimulation } from './js/lenia.js';
+import { LeniaRenderer } from './js/renderer.js';
+import { Controls } from './js/controls.js';
+import { computeGridConfig } from './js/spatial_hash.js';
+import {
+    makeSpeciesParams,
+    makeRandomSpeciesParams,
+    packSpeciesParams,
+    computeRMax,
+    calcKWeight,
+    PALETTE,
+} from './js/species.js';
+
+// Simple seeded PRNG (mulberry32)
+function mulberry32(seed) {
+    return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = t + Math.imul(t ^ (t >>> 7), 61 | t) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+async function main() {
+    // Check WebGPU
+    if (!navigator.gpu) {
+        document.getElementById('error-msg').style.display = 'block';
+        return;
+    }
+
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    if (!adapter) {
+        document.getElementById('error-msg').style.display = 'block';
+        return;
+    }
+    const device = await adapter.requestDevice({
+        requiredLimits: {
+            maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
+            maxBufferSize: adapter.limits.maxBufferSize,
+        },
+    });
+
+    const canvas = document.getElementById('canvas');
+
+    const ui = {
+        particleCount: document.getElementById('particle-count'),
+        particleVal: document.getElementById('particle-val'),
+        speciesCount: document.getElementById('species-count'),
+        speciesVal: document.getElementById('species-val'),
+        dt: document.getElementById('dt'),
+        dtVal: document.getElementById('dt-val'),
+        spf: document.getElementById('spf'),
+        spfVal: document.getElementById('spf-val'),
+        pointSize: document.getElementById('point-size'),
+        pointSizeVal: document.getElementById('ps-val'),
+        boxSize: document.getElementById('box-size'),
+        boxVal: document.getElementById('box-val'),
+        gridSizeExp: document.getElementById('grid-size-exp'),
+        gridVal: document.getElementById('grid-val'),
+        initRange: document.getElementById('init-range'),
+        initRangeVal: document.getElementById('init-range-val'),
+        btnPause: document.getElementById('btn-pause'),
+        btnReset: document.getElementById('btn-reset'),
+        btnRandomize: document.getElementById('btn-randomize'),
+        btnSaveConfig: document.getElementById('btn-save-config'),
+        btnLoadConfig: document.getElementById('btn-load-config'),
+        configFileInput: document.getElementById('config-file-input'),
+        speciesCards: document.getElementById('species-cards'),
+        speciesDetails: document.getElementById('species-details'),
+    };
+
+    const BOX_SIZE_STEP = 32;
+
+    function quantizeBoxSize(value) {
+        return Math.max(BOX_SIZE_STEP, Math.round(value / BOX_SIZE_STEP) * BOX_SIZE_STEP);
+    }
+
+    function isPowerOfTwo(value) {
+        return Number.isInteger(value) && value > 0 && (value & (value - 1)) === 0;
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function toFloat32SpeciesParams(raw, expectedSpeciesCount) {
+        const keys = ['muK', 'sigmaK', 'muG', 'sigmaG', 'cRep'];
+        const out = {};
+        for (const key of keys) {
+            if (!Array.isArray(raw[key])) {
+                throw new Error(`Invalid config: speciesParams.${key} must be an array.`);
+            }
+            if (raw[key].length !== expectedSpeciesCount) {
+                throw new Error(
+                    `Invalid config: speciesParams.${key} must have length ${expectedSpeciesCount}.`
+                );
+            }
+            out[key] = new Float32Array(raw[key]);
+        }
+
+        if (Array.isArray(raw.wK) && raw.wK.length === expectedSpeciesCount) {
+            out.wK = new Float32Array(raw.wK);
+        } else {
+            out.wK = new Float32Array(expectedSpeciesCount);
+            for (let i = 0; i < expectedSpeciesCount; i++) {
+                out.wK[i] = calcKWeight(out.muK[i], out.sigmaK[i]);
+            }
+        }
+        return out;
+    }
+
+    function buildConfigPayload() {
+        const speciesConfig = {
+            muK: Array.from(speciesParams.muK),
+            sigmaK: Array.from(speciesParams.sigmaK),
+            wK: Array.from(speciesParams.wK),
+            muG: Array.from(speciesParams.muG),
+            sigmaG: Array.from(speciesParams.sigmaG),
+            cRep: Array.from(speciesParams.cRep),
+        };
+
+        return {
+            schema: 'particle-lenia-webgpu-config',
+            version: 1,
+            savedAt: new Date().toISOString(),
+            simulation: {
+                particleCount: N,
+                numSpecies,
+                dt,
+                stepsPerFrame,
+                gridSize,
+                boxSize,
+                pointSize: renderer.pointSize,
+            },
+            speciesParams: speciesConfig,
+        };
+    }
+
+    function downloadJson(filename, payload) {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    async function applyLoadedConfig(rawConfig) {
+        const simCfg = rawConfig?.simulation;
+        if (!simCfg || typeof simCfg !== 'object') {
+            throw new Error('Invalid config: missing simulation section.');
+        }
+
+        const loadedN = Number(simCfg.particleCount);
+        const loadedSpecies = Number(simCfg.numSpecies);
+        const loadedDt = Number(simCfg.dt);
+        const loadedStepsPerFrame = Number(simCfg.stepsPerFrame);
+        const loadedGridSize = Number(simCfg.gridSize);
+        const loadedBoxSize = Number(simCfg.boxSize);
+        const loadedPointSize = Number(simCfg.pointSize);
+
+        if (!Number.isInteger(loadedN) || !isPowerOfTwo(loadedN)) {
+            throw new Error('Invalid config: particleCount must be a power-of-two integer.');
+        }
+        if (loadedN < 2 ** 12 || loadedN > 2 ** 20) {
+            throw new Error('Invalid config: particleCount must be between 2^12 and 2^20.');
+        }
+        if (!Number.isInteger(loadedSpecies) || loadedSpecies < 1 || loadedSpecies > 6) {
+            throw new Error('Invalid config: numSpecies must be an integer in [1, 6].');
+        }
+        if (!Number.isFinite(loadedDt) || loadedDt < 0.01 || loadedDt > 1.0) {
+            throw new Error('Invalid config: dt must be in [0.01, 1.0].');
+        }
+        if (!Number.isInteger(loadedStepsPerFrame) || loadedStepsPerFrame < 1 || loadedStepsPerFrame > 64) {
+            throw new Error('Invalid config: stepsPerFrame must be an integer in [1, 64].');
+        }
+        if (!Number.isInteger(loadedGridSize) || !isPowerOfTwo(loadedGridSize)) {
+            throw new Error('Invalid config: gridSize must be a power-of-two integer.');
+        }
+        if (loadedGridSize < 2 ** 5 || loadedGridSize > 2 ** 11) {
+            throw new Error('Invalid config: gridSize must be between 2^5 and 2^11.');
+        }
+        if (!Number.isFinite(loadedBoxSize) || loadedBoxSize < 64 || loadedBoxSize > 2048) {
+            throw new Error('Invalid config: boxSize must be in [64, 2048].');
+        }
+        if (!Number.isFinite(loadedPointSize) || loadedPointSize <= 0) {
+            throw new Error('Invalid config: pointSize must be a positive number.');
+        }
+
+        const loadedSpeciesParams = toFloat32SpeciesParams(rawConfig.speciesParams ?? {}, loadedSpecies);
+
+        const oldStepsPerFrame = stepsPerFrame;
+        const oldPointSize = renderer.pointSize;
+
+        try {
+            stepsPerFrame = clamp(loadedStepsPerFrame, 1, 64);
+            renderer.pointSize = clamp(loadedPointSize, 0.5, 20.0);
+
+            const gridExpLoaded = Math.log2(loadedGridSize);
+            if (!Number.isInteger(gridExpLoaded)) {
+                throw new Error('Invalid config: gridSize exponent is not integral.');
+            }
+
+            await rebuildSimulation({
+                N: loadedN,
+                numSpecies: loadedSpecies,
+                gridSize: loadedGridSize,
+                boxSize: quantizeBoxSize(loadedBoxSize),
+                dt: loadedDt,
+                speciesParams: loadedSpeciesParams,
+            });
+            syncUiLabels();
+        } catch (err) {
+            stepsPerFrame = oldStepsPerFrame;
+            renderer.pointSize = oldPointSize;
+            syncUiLabels();
+            throw err;
+        }
+    }
+
+    // State
+    let particleExp = parseInt(ui.particleCount.value, 10);
+    let N = 2 ** particleExp;
+    let numSpecies = parseInt(ui.speciesCount.value, 10);
+    let gridExp = parseInt(ui.gridSizeExp.value, 10);
+    let gridSize = 2 ** gridExp;
+    let boxSize = quantizeBoxSize(parseFloat(ui.boxSize.value));
+    let dt = parseFloat(ui.dt.value);
+    let stepsPerFrame = parseInt(ui.spf.value, 10);
+    let paused = false;
+    let speciesParams = makeSpeciesParams(numSpecies);
+    let isReinitializing = false;
+    let hasInitialized = false;
+
+    const sim = new LeniaSimulation();
+    const renderer = new LeniaRenderer();
+
+    function formatPow2Label(exp) {
+        return `${(2 ** exp).toLocaleString()} (2^${exp})`;
+    }
+
+    function formatFloat(v, digits = 3) {
+        return Number(v).toFixed(digits);
+    }
+
+    function speciesColor(index, alpha = 1.0) {
+        const c = PALETTE[index % PALETTE.length];
+        const r = Math.round(c[0] * 255);
+        const g = Math.round(c[1] * 255);
+        const b = Math.round(c[2] * 255);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function kernelPlotMaxX() {
+        let maxX = 8.0;
+        for (let i = 0; i < numSpecies; i++) {
+            maxX = Math.max(maxX, speciesParams.muK[i] + 4.0 * speciesParams.sigmaK[i] + 1.0);
+        }
+        return maxX;
+    }
+
+    function gaussianPathData(mu, sigma, xMin, xMax, width = 220, height = 72, pad = 8, samples = 72) {
+        const plotW = width - pad * 2;
+        const plotH = height - pad * 2;
+        const clampSigma = Math.max(0.0001, sigma);
+
+        const points = [];
+        for (let i = 0; i <= samples; i++) {
+            const x = xMin + (i / samples) * (xMax - xMin);
+            const t = (x - mu) / clampSigma;
+            const y = Math.exp(-(t * t));
+            const sx = pad + ((x - xMin) / (xMax - xMin)) * plotW;
+            const sy = height - pad - y * plotH;
+            points.push([sx, sy]);
+        }
+
+        const line = points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+        const first = points[0];
+        const last = points[points.length - 1];
+        const fill = `M ${first[0].toFixed(2)} ${height - pad} ` +
+            points.map(([x, y]) => `L ${x.toFixed(2)} ${y.toFixed(2)}`).join(' ') +
+            ` L ${last[0].toFixed(2)} ${height - pad} Z`;
+
+        const centerX = pad + ((mu - xMin) / (xMax - xMin)) * plotW;
+
+        return {
+            line,
+            fill,
+            centerX: Number.isFinite(centerX) ? centerX : pad,
+            axisY: height - pad,
+            leftX: pad,
+            rightX: width - pad,
+            topY: pad,
+            bottomY: height - pad,
+            xMin,
+            xMax,
+        };
+    }
+
+    function renderGaussian(svgEl, {
+        mu,
+        sigma,
+        xMin,
+        xMax,
+        color,
+        fillColor,
+        centerColor,
+        label,
+    }) {
+        const geom = gaussianPathData(mu, sigma, xMin, xMax);
+        const fill = fillColor ?? color;
+        const center = centerColor ?? color;
+        svgEl.innerHTML = `
+            <line x1="${geom.leftX}" y1="${geom.axisY}" x2="${geom.rightX}" y2="${geom.axisY}" stroke="rgba(140,155,210,0.35)" stroke-width="1" />
+            <line x1="${geom.leftX}" y1="${geom.topY}" x2="${geom.leftX}" y2="${geom.bottomY}" stroke="rgba(140,155,210,0.35)" stroke-width="1" />
+            <path d="${geom.fill}" fill="${fill}" />
+            <polyline points="${geom.line}" fill="none" stroke="${color}" stroke-width="1.8" />
+            <line x1="${geom.centerX.toFixed(2)}" y1="${geom.topY}" x2="${geom.centerX.toFixed(2)}" y2="${geom.bottomY}" stroke="${center}" stroke-dasharray="2 2" stroke-width="1" />
+            <text x="${geom.rightX - 2}" y="${geom.topY + 9}" text-anchor="end" font-size="9" fill="rgba(188,201,240,0.8)">${label}</text>
+            <text x="${geom.leftX + 2}" y="${geom.bottomY - 2}" text-anchor="start" font-size="9" fill="rgba(160,174,220,0.8)">${geom.xMin.toFixed(1)}</text>
+            <text x="${geom.rightX - 2}" y="${geom.bottomY - 2}" text-anchor="end" font-size="9" fill="rgba(160,174,220,0.8)">${geom.xMax.toFixed(1)}</text>
+        `;
+    }
+
+    function makeSpeciesCardHtml(index) {
+        const color = speciesColor(index);
+        return `
+            <details class="species-card" data-species-index="${index}" style="border-color: ${speciesColor(index, 0.35)};" open>
+                <summary class="species-head">
+                    <span class="species-title">
+                        <span class="species-dot" style="background:${color}; box-shadow: 0 0 8px ${speciesColor(index, 0.5)};"></span>
+                        Species ${index}
+                        <span class="species-toggle">click to minimize</span>
+                    </span>
+                    <span class="species-wk" data-field="wK">w_k=0.000</span>
+                </summary>
+
+                <div class="species-body">
+
+                <div class="species-slider">
+                    <div class="slider-row"><span class="math-inline">&mu;<sub>k</sub></span><span class="slider-val" data-field="muK"></span></div>
+                    <input type="range" min="0.00" max="16.00" step="0.01" data-species-index="${index}" data-param="muK">
+                </div>
+                <div class="species-slider">
+                    <div class="slider-row"><span class="math-inline">&sigma;<sub>k</sub></span><span class="slider-val" data-field="sigmaK"></span></div>
+                    <input type="range" min="0.05" max="6.00" step="0.01" data-species-index="${index}" data-param="sigmaK">
+                </div>
+
+                <div class="plot-block">
+                    <div class="plot-label">Kernel profile <span class="math-inline">K(r) = exp(-((r - &mu;<sub>k</sub>) / &sigma;<sub>k</sub>)<sup>2</sup>)</span>, <span class="math-inline">r &gt; 0</span></div>
+                    <svg class="gauss-svg" data-plot="k" viewBox="0 0 220 72" preserveAspectRatio="none"></svg>
+                </div>
+
+                <div class="species-slider">
+                    <div class="slider-row"><span class="math-inline">&mu;<sub>g</sub></span><span class="slider-val" data-field="muG"></span></div>
+                    <input type="range" min="0.00" max="2.00" step="0.005" data-species-index="${index}" data-param="muG">
+                </div>
+                <div class="species-slider">
+                    <div class="slider-row"><span class="math-inline">&sigma;<sub>g</sub></span><span class="slider-val" data-field="sigmaG"></span></div>
+                    <input type="range" min="0.02" max="1.00" step="0.005" data-species-index="${index}" data-param="sigmaG">
+                </div>
+
+                <div class="plot-block">
+                    <div class="plot-label">Growth profile <span class="math-inline">G(U) = exp(-((U - &mu;<sub>g</sub>) / &sigma;<sub>g</sub>)<sup>2</sup>)</span></div>
+                    <svg class="gauss-svg" data-plot="g" viewBox="0 0 220 72" preserveAspectRatio="none"></svg>
+                </div>
+
+                <div class="species-slider">
+                    <div class="slider-row"><span class="math-inline">c<sub>rep</sub></span><span class="slider-val" data-field="cRep"></span></div>
+                    <input type="range" min="0.00" max="3.00" step="0.01" data-species-index="${index}" data-param="cRep">
+                </div>
+
+                </div>
+            </details>
+        `;
+    }
+
+    function updateSpeciesCard(index) {
+        const card = ui.speciesCards.querySelector(`[data-species-index="${index}"]`);
+        if (!card) return;
+
+        const color = speciesColor(index);
+        const muK = speciesParams.muK[index];
+        const sigmaK = speciesParams.sigmaK[index];
+        const muG = speciesParams.muG[index];
+        const sigmaG = speciesParams.sigmaG[index];
+        const cRep = speciesParams.cRep[index];
+        const wK = speciesParams.wK[index];
+
+        card.querySelectorAll('[data-field="muK"]').forEach((el) => { el.textContent = formatFloat(muK); });
+        card.querySelectorAll('[data-field="sigmaK"]').forEach((el) => { el.textContent = formatFloat(sigmaK); });
+        card.querySelectorAll('[data-field="muG"]').forEach((el) => { el.textContent = formatFloat(muG); });
+        card.querySelectorAll('[data-field="sigmaG"]').forEach((el) => { el.textContent = formatFloat(sigmaG); });
+        card.querySelectorAll('[data-field="cRep"]').forEach((el) => { el.textContent = formatFloat(cRep); });
+        const wkEl = card.querySelector('[data-field="wK"]');
+        if (wkEl) wkEl.textContent = `w_k=${formatFloat(wK, 5)}`;
+
+        card.querySelectorAll('input[type="range"]').forEach((inputEl) => {
+            const param = inputEl.dataset.param;
+            if (param === 'muK') inputEl.value = String(muK);
+            if (param === 'sigmaK') inputEl.value = String(sigmaK);
+            if (param === 'muG') inputEl.value = String(muG);
+            if (param === 'sigmaG') inputEl.value = String(sigmaG);
+            if (param === 'cRep') inputEl.value = String(cRep);
+        });
+
+        const kSvg = card.querySelector('[data-plot="k"]');
+        const gSvg = card.querySelector('[data-plot="g"]');
+        renderGaussian(kSvg, {
+            mu: muK,
+            sigma: sigmaK,
+            xMin: 0,
+            xMax: kernelPlotMaxX(),
+            color: speciesColor(index, 1.0),
+            fillColor: speciesColor(index, 0.18),
+            centerColor: speciesColor(index, 0.45),
+            label: `mu=${formatFloat(muK, 2)}  sigma=${formatFloat(sigmaK, 2)}`,
+        });
+        renderGaussian(gSvg, {
+            mu: muG,
+            sigma: sigmaG,
+            xMin: 0,
+            xMax: 2.0,
+            color: speciesColor(index, 0.95),
+            fillColor: speciesColor(index, 0.15),
+            centerColor: speciesColor(index, 0.4),
+            label: `mu=${formatFloat(muG, 2)}  sigma=${formatFloat(sigmaG, 2)}`,
+        });
+    }
+
+    function renderSpeciesPanel() {
+        if (!ui.speciesCards) return;
+        ui.speciesCards.innerHTML = Array.from({ length: numSpecies }, (_, i) => makeSpeciesCardHtml(i)).join('');
+        for (let i = 0; i < numSpecies; i++) {
+            updateSpeciesCard(i);
+        }
+    }
+
+    function applySpeciesParamsToSimulation(updateSpatialRadius) {
+        if (!hasInitialized || isReinitializing) return;
+
+        if (updateSpatialRadius) {
+            const rMax = computeRMax(speciesParams);
+            const nextConfig = computeGridConfig(N, numSpecies, gridSize, boxSize, dt, rMax);
+            sim.config = nextConfig;
+            sim.uploadSimParams(nextConfig);
+        }
+
+        sim.uploadSpeciesParams(packSpeciesParams(speciesParams));
+    }
+
+    function onSpeciesParameterInput(inputEl) {
+        const speciesIndex = parseInt(inputEl.dataset.speciesIndex, 10);
+        const param = inputEl.dataset.param;
+        if (!Number.isInteger(speciesIndex) || speciesIndex < 0 || speciesIndex >= numSpecies) return;
+        if (!param) return;
+
+        const prev = speciesParams[param][speciesIndex];
+        let next = parseFloat(inputEl.value);
+
+        if (param === 'sigmaK' || param === 'sigmaG') {
+            next = Math.max(next, 0.001);
+        }
+
+        speciesParams[param][speciesIndex] = next;
+        let prevWk = null;
+        let updateSpatialRadius = false;
+        if (param === 'muK' || param === 'sigmaK') {
+            prevWk = speciesParams.wK[speciesIndex];
+            speciesParams.wK[speciesIndex] = calcKWeight(speciesParams.muK[speciesIndex], speciesParams.sigmaK[speciesIndex]);
+            updateSpatialRadius = true;
+        }
+
+        try {
+            applySpeciesParamsToSimulation(updateSpatialRadius);
+        } catch (err) {
+            speciesParams[param][speciesIndex] = prev;
+            if (prevWk !== null) speciesParams.wK[speciesIndex] = prevWk;
+            updateSpeciesCard(speciesIndex);
+            alert(err.message);
+            return;
+        }
+
+        if (updateSpatialRadius) {
+            for (let i = 0; i < numSpecies; i++) updateSpeciesCard(i);
+        } else {
+            updateSpeciesCard(speciesIndex);
+        }
+    }
+
+    function syncUiLabels() {
+        ui.particleCount.value = String(particleExp);
+        ui.speciesCount.value = String(numSpecies);
+        ui.boxSize.value = String(Math.round(boxSize));
+        ui.gridSizeExp.value = String(gridExp);
+        ui.dt.value = dt.toFixed(2);
+        ui.spf.value = String(stepsPerFrame);
+        ui.pointSize.value = renderer.pointSize.toFixed(1);
+        ui.particleVal.textContent = formatPow2Label(particleExp);
+        ui.speciesVal.textContent = numSpecies;
+        ui.dtVal.textContent = dt.toFixed(2);
+        ui.spfVal.textContent = stepsPerFrame;
+        ui.pointSizeVal.textContent = renderer.pointSize.toFixed(1);
+        ui.boxVal.textContent = boxSize.toFixed(0);
+        ui.gridVal.textContent = `${gridSize.toLocaleString()} (2^${gridExp})`;
+        renderSpeciesPanel();
+    }
+
+    function setPauseState(newPaused) {
+        paused = newPaused;
+        ui.btnPause.textContent = paused ? 'Resume' : 'Pause';
+    }
+
+    function makeInitialParticles(count, speciesCount, worldSize, initRange = 0.8) {
+        const rng = mulberry32(33);
+        const positions = new Float32Array(count * 2);
+        const types = new Uint32Array(count);
+        for (let i = 0; i < count; i++) {
+            positions[i * 2] = (rng() - 0.5) * initRange * worldSize;
+            positions[i * 2 + 1] = (rng() - 0.5) * initRange * worldSize;
+            types[i] = Math.floor(rng() * speciesCount);
+        }
+        return { positions, types };
+    }
+
+    async function readParticleStateFallback() {
+        const currentN = sim.config?.N ?? N;
+        if (!sim.buffers?.positions || !sim.buffers?.types) {
+            throw new Error('Cannot preserve particles: simulation buffers are unavailable.');
+        }
+
+        const positionsReadback = device.createBuffer({
+            size: currentN * 8,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        });
+        const typesReadback = device.createBuffer({
+            size: currentN * 4,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        });
+
+        const encoder = device.createCommandEncoder();
+        encoder.copyBufferToBuffer(sim.buffers.positions, 0, positionsReadback, 0, currentN * 8);
+        encoder.copyBufferToBuffer(sim.buffers.types, 0, typesReadback, 0, currentN * 4);
+        device.queue.submit([encoder.finish()]);
+
+        await positionsReadback.mapAsync(GPUMapMode.READ);
+        await typesReadback.mapAsync(GPUMapMode.READ);
+
+        const positions = new Float32Array(positionsReadback.getMappedRange().slice(0));
+        const types = new Uint32Array(typesReadback.getMappedRange().slice(0));
+
+        positionsReadback.unmap();
+        typesReadback.unmap();
+        positionsReadback.destroy();
+        typesReadback.destroy();
+
+        return { positions, types };
+    }
+
+    async function rebuildSimulation(overrides = {}) {
+        if (isReinitializing) return;
+
+        const nextSpeciesParams = overrides.speciesParams ?? speciesParams;
+        const preserveParticleState = Boolean(overrides.preserveParticleState);
+        const next = {
+            N: overrides.N ?? N,
+            numSpecies: overrides.numSpecies ?? numSpecies,
+            gridSize: overrides.gridSize ?? gridSize,
+            boxSize: quantizeBoxSize(overrides.boxSize ?? boxSize),
+            dt: overrides.dt ?? dt,
+            speciesParams: nextSpeciesParams,
+        };
+
+        // Validate configuration before tearing down current GPU resources.
+        const rMax = computeRMax(next.speciesParams);
+        const config = computeGridConfig(
+            next.N,
+            next.numSpecies,
+            next.gridSize,
+            next.boxSize,
+            next.dt,
+            rMax
+        );
+
+        isReinitializing = true;
+        try {
+            let savedParticleState = null;
+            const canPreserveParticles =
+                preserveParticleState &&
+                hasInitialized &&
+                next.N === N &&
+                next.numSpecies === numSpecies;
+
+            if (canPreserveParticles) {
+                if (typeof sim.readParticleState === 'function') {
+                    savedParticleState = await sim.readParticleState();
+                } else {
+                    savedParticleState = await readParticleStateFallback();
+                }
+            }
+
+            if (hasInitialized) {
+                sim.destroy();
+                renderer.destroy();
+            }
+
+            await sim.init(device, config);
+            sim.uploadSimParams(config);
+            sim.uploadSpeciesParams(packSpeciesParams(next.speciesParams));
+
+            if (savedParticleState) {
+                sim.uploadParticles(savedParticleState.positions, savedParticleState.types);
+            } else {
+                const { positions, types } = makeInitialParticles(next.N, next.numSpecies, next.boxSize, parseFloat(ui.initRange.value));
+                sim.uploadParticles(positions, types);
+            }
+
+            await renderer.init(device, canvas, sim.buffers, config);
+
+            N = next.N;
+            numSpecies = next.numSpecies;
+            gridSize = next.gridSize;
+            boxSize = next.boxSize;
+            dt = next.dt;
+            speciesParams = next.speciesParams;
+            particleExp = Math.round(Math.log2(N));
+            gridExp = Math.round(Math.log2(gridSize));
+            sim.stepCount = 0;
+            hasInitialized = true;
+            syncUiLabels();
+        } finally {
+            isReinitializing = false;
+        }
+    }
+
+    async function safeRebuild(overrides = {}) {
+        try {
+            await rebuildSimulation(overrides);
+        } catch (err) {
+            console.error(err);
+            alert(err.message);
+            syncUiLabels();
+        }
+    }
+
+    renderer.pointSize = parseFloat(ui.pointSize.value);
+    syncUiLabels();
+
+    async function resetSimulation() {
+        await safeRebuild();
+    }
+
+    async function randomizeSpeciesAndReinit() {
+        await safeRebuild({ speciesParams: makeRandomSpeciesParams(numSpecies) });
+    }
+
+    function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    await safeRebuild();
+
+    // Controls
+    const controls = new Controls(canvas, renderer, {
+        onPause: () => {
+            setPauseState(!paused);
+        },
+        onReset: () => { void resetSimulation(); },
+        onRandomize: () => { void randomizeSpeciesAndReinit(); },
+    });
+
+    // UI bindings
+    ui.speciesCards.addEventListener('input', (e) => {
+        const inputEl = e.target;
+        if (!(inputEl instanceof HTMLInputElement)) return;
+        if (inputEl.dataset.param) {
+            onSpeciesParameterInput(inputEl);
+        }
+    });
+
+    ui.dt.addEventListener('input', (e) => {
+        dt = parseFloat(e.target.value);
+        ui.dtVal.textContent = dt.toFixed(2);
+        sim.updateDt(dt);
+    });
+    ui.spf.addEventListener('input', (e) => {
+        stepsPerFrame = parseInt(e.target.value);
+        ui.spfVal.textContent = stepsPerFrame;
+    });
+    ui.pointSize.addEventListener('input', (e) => {
+        renderer.pointSize = parseFloat(e.target.value);
+        ui.pointSizeVal.textContent = renderer.pointSize.toFixed(1);
+    });
+    ui.btnPause.addEventListener('click', () => {
+        setPauseState(!paused);
+    });
+    ui.btnReset.addEventListener('click', () => {
+        void resetSimulation();
+    });
+    ui.btnRandomize.addEventListener('click', () => {
+        void randomizeSpeciesAndReinit();
+    });
+    ui.btnSaveConfig.addEventListener('click', () => {
+        const payload = buildConfigPayload();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        downloadJson(`lenia-config-${timestamp}.json`, payload);
+    });
+    ui.btnLoadConfig.addEventListener('click', () => {
+        ui.configFileInput.value = '';
+        ui.configFileInput.click();
+    });
+    ui.configFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            await applyLoadedConfig(json);
+        } catch (err) {
+            console.error(err);
+            alert(`Failed to load config: ${err.message}`);
+        }
+    });
+    ui.particleCount.addEventListener('input', (e) => {
+        const exp = parseInt(e.target.value, 10);
+        ui.particleVal.textContent = formatPow2Label(exp);
+    });
+    ui.particleCount.addEventListener('change', (e) => {
+        const exp = parseInt(e.target.value, 10);
+        void safeRebuild({ N: 2 ** exp });
+    });
+    ui.speciesCount.addEventListener('change', (e) => {
+        const requestedSpecies = parseInt(e.target.value, 10);
+        ui.speciesVal.textContent = requestedSpecies;
+        void safeRebuild({
+            numSpecies: requestedSpecies,
+            speciesParams: makeSpeciesParams(requestedSpecies),
+        });
+    });
+    ui.boxSize.addEventListener('input', (e) => {
+        const proposedBox = quantizeBoxSize(parseFloat(e.target.value));
+        ui.boxVal.textContent = proposedBox.toFixed(0);
+    });
+    ui.boxSize.addEventListener('change', (e) => {
+        const proposedBox = quantizeBoxSize(parseFloat(e.target.value));
+        ui.boxSize.value = String(proposedBox);
+        void safeRebuild({ boxSize: proposedBox });
+    });
+    ui.gridSizeExp.addEventListener('input', (e) => {
+        const exp = parseInt(e.target.value, 10);
+        ui.gridVal.textContent = `${(2 ** exp).toLocaleString()} (2^${exp})`;
+    });
+    ui.gridSizeExp.addEventListener('change', (e) => {
+        const exp = parseInt(e.target.value, 10);
+        void safeRebuild({ gridSize: 2 ** exp, preserveParticleState: true });
+    });
+    ui.initRange.addEventListener('input', (e) => {
+        ui.initRangeVal.textContent = `${parseFloat(e.target.value).toFixed(2)} × box`;
+    });
+
+    // FPS tracking
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+    let fps = 0;
+    let sps = 0;
+
+    // Main loop
+    function frame() {
+        if (!paused) {
+            sim.step(stepsPerFrame);
+        }
+
+        // Render
+        const encoder = device.createCommandEncoder();
+        renderer.render(encoder, canvas);
+        device.queue.submit([encoder.finish()]);
+
+        // FPS
+        frameCount++;
+        const now = performance.now();
+        if (now - lastFpsTime >= 1000) {
+            fps = frameCount / ((now - lastFpsTime) / 1000);
+            sps = fps * stepsPerFrame;
+            frameCount = 0;
+            lastFpsTime = now;
+
+            document.getElementById('fps').textContent = fps.toFixed(0);
+            document.getElementById('sps').textContent = (paused ? 0 : sps).toFixed(0);
+            document.getElementById('step-count').textContent = sim.stepCount;
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+}
+
+main().catch(console.error);
+</script>
+</body>
+</html>

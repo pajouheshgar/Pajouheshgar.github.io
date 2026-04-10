@@ -100,8 +100,6 @@
 
 /* Sidenotes (right column) */
 .post-sidenotes {
-  position: sticky;
-  top: calc(var(--nav-h) + 2rem);
   font-family: var(--font-sans);
   font-size: 0.78rem;
   color: var(--text-muted);
@@ -123,9 +121,98 @@
 /* KaTeX overrides for theme */
 .katex { font-size: 1em; }
 .post-body .katex-display {
+  display: block;
   overflow-x: auto;
-  padding: 0.5rem 0;
+  overflow-y: hidden;
+  padding: 0.5rem 0.25rem;
   margin: 1.25rem 0;
+  max-width: 100%;
+}
+.post-body .katex-display > .katex {
+  display: block;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* ============================================================
+   INLINE CITATION MARKERS  {% cite N %}
+   ============================================================ */
+
+.cite-marker {
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+}
+.cite-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.cite-link::before { content: "["; }
+.cite-link::after  { content: "]"; }
+.cite-link:hover { text-decoration: underline; }
+
+/* ============================================================
+   REFERENCES SECTION  (visually distinct from footnotes)
+   Footnotes: explanatory asides, very small, plain text
+   References: bibliographic entries, slightly larger, structured
+   ============================================================ */
+
+.post-references {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border);
+}
+.ref-heading {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.ref-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: ref-counter;
+}
+.ref-item {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text);
+  padding: 0.5rem 0 0.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.ref-item:last-child { border-bottom: none; }
+.ref-item::before {
+  content: "[" counter(ref-counter) "]";
+  counter-increment: ref-counter;
+  position: absolute;
+  left: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  top: 0.55rem;
+}
+.ref-authors {
+  font-weight: 600;
+  color: var(--text);
+}
+.ref-title {
+  color: var(--text);
+  font-style: italic;
+}
+a.ref-title {
+  color: var(--accent);
+  text-decoration: none;
+}
+a.ref-title:hover { text-decoration: underline; }
+.ref-venue {
+  color: var(--text-muted);
 }
 
 /* Post footer */
@@ -159,4 +246,85 @@
     margin-top: 2rem;
   }
   .post-title { font-size: 1.3rem; }
+}
+
+/* ============================================================
+   INLINE MARGIN NOTES
+   Float next to the paragraph they're defined in.
+   ============================================================ */
+
+.marginnote {
+  /* On wide screens: hidden until JS moves it into the sidebar column.
+     visibility:hidden keeps layout stable; JS switches to visible + absolute. */
+  visibility: hidden;
+  float: right;
+  clear: right;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /* Sidebar appearance (applied once JS sets position:absolute) */
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  border-left: 2px solid var(--border);
+  padding-left: 0.65rem;
+}
+/* JS adds position:absolute — restore normal sizing */
+.marginnote[style*="position: absolute"] {
+  visibility: visible;
+  width: 100% !important;
+  height: auto;
+  overflow: visible;
+  padding-left: 0.65rem;
+  margin: 0;
+  float: none;
+}
+.marginnote-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-bottom: 0.2rem;
+}
+/* Mobile: show inline, no sidebar column */
+@media (max-width: 860px) {
+  .marginnote {
+    visibility: visible;
+    float: none;
+    position: static !important;
+    width: auto !important;
+    height: auto;
+    overflow: visible;
+    margin: 1rem 0 0.5rem;
+    padding: 0.5rem 0 0 0.65rem;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* ============================================================
+   DEMO EMBED (iframe-based)
+   ============================================================ */
+
+.demo-embed {
+  margin: 1.5rem 0 2rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.demo-embed iframe {
+  display: block;
+  width: 100%;
+  height: 520px;
+  border: none;
+}
+.demo-caption {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
 }

@@ -1,29 +1,4 @@
-- title: "Reaction-Diffusion on Hyperbolic Space"
-  description: "What do Turing patterns look like on a negatively curved manifold? Can NCA-like models exhibit qualitatively different self-organization on hyperbolic tilings compared to flat grids?"
-  tags: ["math", "biology", "nca", "graphics"]
-  status: "idea"
-
-- title: "Persistent Memory in Neural Cellular Automata"
-  description: "Current NCA models have no long-range memory — each cell only sees its immediate neighborhood. Can we design architectures that allow the global pattern to influence local dynamics without breaking the CA paradigm?"
-  tags: ["nca", "deep-learning", "theory"]
-  status: "exploring"
-
-- title: "Self-Organizing Criticality in Learned Systems"
-  description: "SOC systems naturally tune themselves to a critical point. Can we train neural networks to exhibit this property? What would a loss function for criticality even look like? SOC systems naturally tune themselves to a critical point. Can we train neural networks to exhibit this property? What would a loss function for criticality even look like?"
-  tags: ["physics", "theory", "complex-systems"]
-  status: "idea"
-
-- title: "NCA on Graphs with Dynamic Topology"
-  description: "MeshNCA works on fixed meshes. What happens when the mesh itself can change — cells that divide, die, or form new connections? A step toward developmental biology in silico."
-  tags: ["nca", "biology", "graphics"]
-  status: "idea"
-
-- title: "Geometric Deep Learning for Texture Synthesis"
-  description: "Most texture synthesis is done in pixel space. What if we parameterize textures as geometric objects — vector fields, differential forms — and synthesize in that space?"
-  tags: ["math", "graphics", "deep-learning"]
-  status: "idea"
-
-- title: "Open-Ended Evolution in Neural Populations"
-  description: "Can a population of competing NCA-like agents evolve open-endedly? Interested in the conditions under which complexity spontaneously increases without external selection pressure."
-  tags: ["artificial-life", "evolution", "complex-systems"]
-  status: "idea"
+- title: "Emergent Multi-Scale Behavior in Dynamical Systems"
+  description: "Can we find a dynamical system with fixed microscopic rules which spontaneously exhibits qualitatively new behavior as simulation scale (particle count, grid size, time) increases? Physical reality shows emergence at each organizational level—atoms, molecules, cells, organisms, ecosystems—where new phenomena invisible at smaller scales appear."
+  tags: ["artificial-life", "complex-systems", "particle-lenia"]
+  status: "active"

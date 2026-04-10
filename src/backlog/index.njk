@@ -23,6 +23,7 @@ description: "Project ideas and open questions Ehsan Pajouheshgar finds interest
 
 <div class="backlog-grid">
   {% for item in backlog %}
+    {% if item.visible != false %}
     <div class="backlog-card" data-backlog-tags="{{ item.tags | join(',') }}">
       <div class="backlog-status {{ item.status }}">// {{ item.status }}</div>
       <div class="backlog-title">{{ item.title }}</div>
@@ -33,5 +34,6 @@ description: "Project ideas and open questions Ehsan Pajouheshgar finds interest
         {% endfor %}
       </div>
     </div>
+    {% endif %}
   {% endfor %}
 </div>

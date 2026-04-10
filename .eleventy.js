@@ -22,6 +22,16 @@ module.exports = function (eleventyConfig) {
     .use(markdownItAttrs)
     .use(markdownItKatex);
 
+  // Override footnote_ref to render as plain number (no brackets).
+  // Brackets are reserved for citations ({% cite N %}), keeping the two
+  // visually distinct: footnotes → ¹  citations → [1]
+  md.renderer.rules.footnote_ref = function (tokens, idx) {
+    const n = tokens[idx].meta.id + 1;
+    const subId = tokens[idx].meta.subId;
+    const suffix = subId > 0 ? `:${subId}` : "";
+    return `<sup class="footnote-ref"><a href="#fn${n}" id="fnref${n}${suffix}">${n}</a></sup>`;
+  };
+
   eleventyConfig.setLibrary("md", md);
 
   // Pass-through copies
@@ -30,6 +40,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/data");
   eleventyConfig.addPassthroughCopy("legacy");
   eleventyConfig.addPassthroughCopy({ "cv": "cv" }); // root-level cv/ → _site/cv/
+  eleventyConfig.addPassthroughCopy({ "demos": "demos" }); // root-level demos/ → _site/demos/
 
   // Collections
   eleventyConfig.addCollection("posts", function (collectionApi) {
@@ -77,6 +88,13 @@ module.exports = function (eleventyConfig) {
   });
 
   // Shortcodes
+  // Inline citation marker: {% cite N %} → superscript [N] linking to #ref-N
+  // Note: brackets are added by CSS ::before/::after to avoid markdown-it
+  // mis-parsing [N] inside HTML as a reference-style link.
+  eleventyConfig.addShortcode("cite", function (num) {
+    return `<sup class="cite-marker"><a href="#ref-${num}" id="citeref-${num}" class="cite-link">${num}</a></sup>`;
+  });
+
   eleventyConfig.addShortcode("demo", function (scriptPath, caption) {
     const id = scriptPath.replace(/[^a-z0-9]/gi, "_");
     return `<div class="demo-container">

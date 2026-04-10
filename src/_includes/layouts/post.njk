@@ -25,6 +25,26 @@ extraCss:
           {{ content | safe }}
         </div>
 
+        {% if references %}
+        <section class="post-references" aria-label="References">
+          <h2 class="ref-heading">References</h2>
+          <ol class="ref-list">
+            {% for ref in references %}
+            <li class="ref-item" id="ref-{{ loop.index }}">
+              <span class="ref-authors">{{ ref.authors }}</span>.
+              {% if ref.url %}
+                <a href="{{ ref.url }}" class="ref-title" target="_blank" rel="noopener">{{ ref.title }}</a>.
+              {% else %}
+                <span class="ref-title">{{ ref.title }}</span>.
+              {% endif %}
+              {% if ref.venue %}<em class="ref-venue">{{ ref.venue }}</em>{% if ref.year %},{% endif %}{% endif %}
+              {% if ref.year %} {{ ref.year }}{% endif %}.
+            </li>
+            {% endfor %}
+          </ol>
+        </section>
+        {% endif %}
+
         <footer class="post-footer">
           <a href="/blog/" class="post-nav-link">← all posts</a>
         </footer>

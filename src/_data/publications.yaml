@@ -4,7 +4,7 @@ highlights:
     year: 2025
     status: published
     authors: "Ehsan Pajouheshgar, A. Bhardwaj, N. Selub, E. Lake"
-    description: "We use Neural Cellular Automata to map the landscape of non-equilibrium memory states in physical systems, revealing a rich structure of attractors and transitions that connects ideas from statistical physics and machine learning."
+    description: "We study binary 2D cellular automata that robustly store one-bit memories under noise, and use a modified Neural Cellular Automata framework to discover many new memory-preserving rules beyond Toom's rule."
     links:
       arxiv: "https://arxiv.org/pdf/2508.15726"
       demo: "https://memorynca.github.io/2D"
@@ -14,7 +14,7 @@ highlights:
     year: 2024
     status: published
     authors: "Ehsan Pajouheshgar, Yitao Xu, Alexander Mordvintsev, Eyvind Niklasson, Tuur Stuyck, Sabine Süsstrunk"
-    description: "MeshNCA extends Neural Cellular Automata to operate directly on triangle meshes, enabling real-time dynamic texture synthesis on arbitrary 3D surfaces without UV unwrapping or global communication."
+    description: "MeshNCA extends Neural Cellular Automata from regular grids to triangle meshes, enabling local self-organization and real-time dynamic texture synthesis directly on 3D surfaces without UV unwrapping or global communication."
     image: "/legacy/images/meshnca.png"
     video: "/legacy/images/meshnca.mp4"
     links:
@@ -29,7 +29,7 @@ highlights:
     awards:
       - "Best Student Paper Award"
     authors: "Ehsan Pajouheshgar, Yitao Xu, Sabine Süsstrunk"
-    description: "We show that initializing NCA with structured noise instead of a single seed cell dramatically improves spatial and temporal continuity of the generated patterns, enabling seamless tiling and stable long-horizon evolution."
+    description: "We analyze NCA texture models in the continuous space-time limit, show that standard training overfits discretization near the seed, and use uniform-noise initialization to learn dynamics that stay consistent across resolutions, are robust to stochastic updates and additive noise, and behave like PDEs."
     image: "/legacy/images/noisenca.png"
     video: "/legacy/images/noisenca.mp4"
     links:
@@ -42,7 +42,7 @@ highlights:
     year: 2023
     status: published
     authors: "Ehsan Pajouheshgar, Yitao Xu, Tuur Stuyck, Sabine Süsstrunk"
-    description: "DyNCA synthesizes temporally coherent dynamic textures in real-time by training a lightweight NCA with optical-flow and motion statistics losses derived from a single example video."
+    description: "DyNCA enables real-time and controllable dynamic texture synthesis, producing arbitrarily long and arbitrary-size video textures while improving synthesis speed and quality by orders of magnitude over prior optimization-based methods."
     image: "/legacy/images/dynca.png"
     video: "/legacy/images/dynca.mp4"
     links:
@@ -56,7 +56,7 @@ other:
     year: 2026
     status: under-submission
     authors: "H. Kim*, Ehsan Pajouheshgar*, S. Süsstrunk, W. Jakob, J. Park"
-    description: "We introduce Neural Particle Automata, a framework where particles learn local interaction rules that give rise to self-organizing collective dynamics, unifying particle simulation and cellular automata under a differentiable learning paradigm."
+    description: "We introduce Neural Particle Automata, a Lagrangian generalization of NCA where cells are particles with continuous positions and internal states updated by a shared local neural rule, and combine differentiable SPH operators with efficient CUDA kernels to scale self-organizing particle dynamics across multiple tasks."
     links:
       demo: "https://selforg-npa.github.io"
 
@@ -65,7 +65,7 @@ other:
     year: 2026
     status: under-submission
     authors: "Ehsan Pajouheshgar, Y. Xu, A. Abbasi, A. Mordvintsev, W. Jakob, S. Süsstrunk"
-    description: "A comprehensive study of Neural Cellular Automata for visual synthesis tasks, unifying texture generation, dynamic patterns, and 3D surface synthesis under a single framework and tracing the design choices that matter most."
+    description: "We pair a coarse-grid NCA with a lightweight local implicit decoder to render self-organizing outputs at arbitrary resolution in real time, overcoming high-resolution NCA memory and compute bottlenecks while preserving regeneration, robustness, and spontaneous dynamics across 2D, 3D, and mesh domains."
     links:
       demo: "https://cells2pixels.github.io"
 
@@ -74,7 +74,7 @@ other:
     year: 2025
     status: published
     authors: "M. Larsson, H. Yamaguchi, Ehsan Pajouheshgar, I-C. Shen, K. Tojo, C-M. Chang, et al."
-    description: "We present Mokume, a dataset of high-resolution solid wood texture measurements, along with an inverse modeling pipeline that recovers volumetric wood microstructure from surface appearance for physically accurate rendering."
+    description: "We present Mokume, a solid-wood dataset of 190 cube samples with high-resolution photos, ring annotations, and CT scans, and introduce a three-stage inverse pipeline that reconstructs globally consistent 3D growth fields and volumetric color textures from exterior photographs using procedural and NCA-based synthesis."
     links:
       project: "https://mokumeproject.github.io/"
 
@@ -85,7 +85,7 @@ other:
     awards:
       - "Best Poster Award"
     authors: "D. Wang, Ehsan Pajouheshgar, Y. Xu, T. Zhang, S. Süsstrunk"
-    description: "We extend NCA-based texture synthesis to 3D+time, enabling stylization of volumetric smoke simulations. The model learns coherent spatio-temporal patterns from a single example and applies them in real-time to fluid simulations."
+    description: "We present VNCA, an efficient volumetric style-transfer model that synthesizes multi-view-consistent stylization features for target smoke in real time while preserving temporally coherent transitions across frames."
     links:
       arxiv: "https://arxiv.org/pdf/2502.09631"
 
@@ -94,7 +94,7 @@ other:
     year: 2025
     status: preprint
     authors: "Y. Xu, T. Zhang, Ehsan Pajouheshgar, S. Süsstrunk"
-    description: "We identify and characterize canonical latent representations that emerge in conditional diffusion models, showing that conditioning signals induce structured geometry in the latent space that can be exploited for controllable generation."
+    description: "We identify Canonical Latent Representations in conditional diffusion models and use them in CaDistill to transfer core class semantics through compact representative latent samples, enabling strong robustness and generalization with only a small fraction of the original training data."
     links:
       arxiv: "https://arxiv.org/abs/2506.09955"
 
@@ -118,7 +118,7 @@ other:
     year: 2024
     status: published
     authors: "Y. Xu, Ehsan Pajouheshgar, S. Süsstrunk"
-    description: "We systematically study the emergent dynamical behaviors that arise during and after NCA training — including oscillations, traveling waves, and chaos — and show how these can be controlled through architectural and loss design choices."
+    description: "We analyze the relationship between NCA architecture and emergent motion in the dynamics by varying cell-state dimensionality and MLP width, showing that their disparity and proportionality strongly correlate with motion strength and provide a practical design rule for dynamic NCAs."
     links:
       arxiv: "https://arxiv.org/abs/2404.06406"
 
@@ -138,7 +138,7 @@ other:
     year: 2020
     status: published
     authors: "A. Khodadadi, A. Hosseini, Ehsan Pajouheshgar, F. Mansouri, H.R. Rabiee"
-    description: "ChOracle formulates customer churn prediction as a unified probabilistic inference problem, jointly modeling user activity patterns and churn events within a single statistical framework that outperforms feature-engineering baselines."
+    description: "ChOracle models churn through user return-time prediction by combining temporal point processes, recurrent neural networks, and latent loyalty variables, and uses an efficient variational backpropagation-through-time training method that generalizes across diverse real-world datasets."
     links:
       paper: "https://ieeexplore.ieee.org/abstract/document/9109662"
 
@@ -147,7 +147,7 @@ other:
     year: 2018
     status: published
     authors: "Ehsan Pajouheshgar, Christoph H. Lampert"
-    description: "We revisit trajectory forecasting and show that a simple probabilistic baseline — without complex architectures or social interaction models — matches or exceeds state-of-the-art methods on standard benchmarks, questioning the field's evaluation practices."
+    description: "We propose an auto-regressive spatio-temporal CNN that outputs explicit probability distributions over future trajectories from visual input, and show that this simple probabilistic baseline matches or outperforms more complex methods on MNISTseq and Stanford Drone benchmarks."
     image: "/legacy/images/ptf.png"
     links:
       arxiv: "https://arxiv.org/abs/1812.02984"

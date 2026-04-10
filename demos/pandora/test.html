@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Particle Lenia - Tests</title>
+<style>
+body {
+    background: #111; color: #ccc;
+    font-family: 'Courier New', monospace; font-size: 14px;
+    padding: 20px; max-width: 900px;
+}
+h1 { color: #7af; margin-bottom: 20px; }
+#test-results { white-space: pre-wrap; line-height: 1.6; }
+.pass { color: #4f4; }
+.fail { color: #f44; }
+.info { color: #aaa; }
+button {
+    margin-bottom: 20px; padding: 8px 16px;
+    background: #333; color: #ccc; border: 1px solid #555;
+    border-radius: 4px; cursor: pointer; font-size: 14px;
+}
+button:hover { background: #444; }
+</style>
+</head>
+<body>
+<h1>Particle Lenia - WebGPU Test Suite</h1>
+<button id="run-btn">Run Tests</button>
+<div id="test-results"></div>
+
+<script type="module">
+import { runTests } from './test.js';
+
+document.getElementById('run-btn').addEventListener('click', () => {
+    runTests().catch(e => {
+        console.error(e);
+        document.getElementById('test-results').innerHTML += `<div class="fail">FATAL: ${e.message}\n${e.stack}</div>`;
+    });
+});
+
+// Auto-run on load
+runTests().catch(console.error);
+</script>
+</body>
+</html>

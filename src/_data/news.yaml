@@ -1,14 +1,27 @@
+- date: 2026-04-10
+  visible: true
+  text: "New blog post: <a href='/blog/posts/pandora-artificial-life/'>Pandora — Scaling Particle Lenia to Millions of Particles</a>."
+
+- date: 2025-08-01
+  visible: true
+  text: "Started a postdoc at <strong>EPFL</strong>."
+
 - date: 2024-07-15
+  visible: false
   text: "NoiseNCA won the <strong>Best Student Paper Award</strong> at ALife 2024."
 
 - date: 2024-07-12
+  visible: false
   text: "Attended <strong>Artificial Life (ALife 2024)</strong> Conference in Copenhagen."
 
 - date: 2024-07-08
+  visible: false
   text: "Was supposed to attend <strong>SIGGRAPH 2024</strong> — visa problems prevented the trip."
 
 - date: 2024-05-01
+  visible: false
   text: "Two papers accepted to <strong>ALife 2024</strong>: NoiseNCA and Emergent Dynamics in NCA."
 
 - date: 2024-03-01
+  visible: false
   text: "MeshNCA accepted as a journal paper to <strong>SIGGRAPH 2024</strong>."
