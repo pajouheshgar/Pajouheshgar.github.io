@@ -1,3 +1,7 @@
+- date: 2026-05-20
+  visible: true
+  text: "Two papers accepted to <strong>SIGGRAPH 2026</strong>: <a href='https://cells2pixels.github.io/'>Neural Cellular Automata: From Cells to Pixels</a> and <a href='https://selforg-npa.github.io/'>Neural Particle Automata</a>."
+
 - date: 2026-04-10
   visible: true
   text: "New blog post: <a href='/blog/posts/pandora-artificial-life/'>Pandora — Scaling Particle Lenia to Millions of Particles</a>."

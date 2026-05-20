@@ -1,4 +1,26 @@
 highlights:
+  - title: "Neural Particle Automata: Learning Self-Organizing Particle Dynamics"
+    venue: "SIGGRAPH"
+    year: 2026
+    status: published
+    authors: "Ehsan Pajouheshgar*, Hyunsoo Kim*, Sabine Süsstrunk, Wenzel Jakob, Jinah Park"
+    description: "We introduce Neural Particle Automata, a Lagrangian generalization of Neural Cellular Automata where each cell is a particle with a continuous position and internal state, using differentiable SPH operators and memory-efficient CUDA kernels to scale learned self-organizing particle dynamics."
+    links:
+      arxiv: "https://arxiv.org/abs/2601.16096"
+      demo: "https://selforg-npa.github.io/"
+
+
+  - title: "Neural Cellular Automata: From Cells to Pixels"
+    venue: "SIGGRAPH"
+    year: 2026
+    status: published
+    authors: "Ehsan Pajouheshgar, Yitao Xu, Ali Abbasi, Alexander Mordvintsev, Wenzel Jakob, Sabine Süsstrunk"
+    description: "We pair a coarse-grid Neural Cellular Automata model with a lightweight implicit decoder that maps cell states and local coordinates to appearance, enabling self-organizing NCA outputs to render at arbitrary resolution in real time while preserving regeneration, robustness, and spontaneous dynamics across 2D, 3D, and mesh domains."
+    links:
+      arxiv: "https://arxiv.org/abs/2506.22899v3"
+      demo: "https://cells2pixels.github.io/"
+
+
   - title: "Exploring the Landscape of Non-Equilibrium Memories with Neural Cellular Automata"
     venue: "Physical Review Letters"
     year: 2025
