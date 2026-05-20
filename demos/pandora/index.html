@@ -225,17 +225,27 @@ canvas { display: block; width: 100%; height: 100vh; }
     <summary class="controls-summary">Particle Lenia <span class="controls-toggle-icon">▶</span></summary>
     <div class="controls-body">
 
-    <label><div class="row">Particles <span class="val" id="particle-val">16,384 (2^14)</span></div></label>
-    <input type="range" id="particle-count" min="12" max="20" step="1" value="14">
+    <label><div class="row">Particles <span class="val" id="particle-val">65,536 (2^16)</span></div></label>
+    <input type="range" id="particle-count" min="12" max="20" step="1" value="16">
 
-    <label><div class="row">Species <span class="val" id="species-val">2</span></div></label>
+    <label><div class="row">Species <span class="val" id="species-val">8</span></div></label>
     <select id="species-count">
         <option value="1">1</option>
-        <option value="2" selected>2</option>
+        <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
         <option value="5">5</option>
         <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8" selected>8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
     </select>
 
     <label><div class="row">dt <span class="val" id="dt-val">0.25</span></div></label>
@@ -250,8 +260,8 @@ canvas { display: block; width: 100%; height: 100vh; }
     <details id="advanced-controls">
         <summary>Advanced Options</summary>
 
-        <label><div class="row">Box size <span class="val" id="box-val">256</span></div></label>
-        <input type="range" id="box-size" min="64" max="2048" step="32" value="256">
+        <label><div class="row">Box size <span class="val" id="box-val">512</span></div></label>
+        <input type="range" id="box-size" min="64" max="2048" step="32" value="512">
 
         <label><div class="row">HashGrid size <span class="val" id="grid-val">64 (2^6)</span></div></label>
         <input type="range" id="grid-size-exp" min="5" max="11" step="1" value="6">
@@ -259,6 +269,15 @@ canvas { display: block; width: 100%; height: 100vh; }
 
         <label><div class="row">Init range <span class="val" id="init-range-val">0.80 × box</span></div></label>
         <input type="range" id="init-range" min="0.05" max="1.0" step="0.05" value="0.8">
+
+        <label><div class="row">Type init <span class="val" id="type-init-val">Spatial bins</span></div></label>
+        <select id="type-init-mode">
+            <option value="random">Random</option>
+            <option value="spatial-bins" selected>Spatial bins</option>
+        </select>
+
+        <label><div class="row">Type bins <span class="val" id="type-bin-val">8 x 8</span></div></label>
+        <input type="range" id="type-bin-count" min="2" max="64" step="1" value="8">
     </details>
 
     <div class="btn-row">
@@ -346,6 +365,10 @@ async function main() {
         gridVal: document.getElementById('grid-val'),
         initRange: document.getElementById('init-range'),
         initRangeVal: document.getElementById('init-range-val'),
+        typeInitMode: document.getElementById('type-init-mode'),
+        typeInitVal: document.getElementById('type-init-val'),
+        typeBinCount: document.getElementById('type-bin-count'),
+        typeBinVal: document.getElementById('type-bin-val'),
         btnPause: document.getElementById('btn-pause'),
         btnReset: document.getElementById('btn-reset'),
         btnRandomize: document.getElementById('btn-randomize'),
@@ -357,6 +380,11 @@ async function main() {
     };
 
     const BOX_SIZE_STEP = 32;
+    const TYPE_INIT_MODES = new Set(['random', 'spatial-bins']);
+    const TYPE_INIT_LABELS = {
+        random: 'Random',
+        'spatial-bins': 'Spatial bins',
+    };
 
     function quantizeBoxSize(value) {
         return Math.max(BOX_SIZE_STEP, Math.round(value / BOX_SIZE_STEP) * BOX_SIZE_STEP);
@@ -368,6 +396,39 @@ async function main() {
 
     function clamp(value, min, max) {
         return Math.min(max, Math.max(min, value));
+    }
+
+    function normalizeTypeInitMode(value) {
+        return TYPE_INIT_MODES.has(value) ? value : 'random';
+    }
+
+    function formatTypeBinsLabel(value) {
+        return `${value} x ${value}`;
+    }
+
+    function normalizeTypeBinCount(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? clamp(Math.round(parsed), 2, 64) : 8;
+    }
+
+    function hashBinCoords(x, y, seed) {
+        let h = Math.imul(x + 0x9e3779b9, 0x85ebca6b) ^
+            Math.imul(y + 0xc2b2ae35, 0x27d4eb2f) ^
+            seed;
+        h ^= h >>> 16;
+        h = Math.imul(h, 0x7feb352d);
+        h ^= h >>> 15;
+        h = Math.imul(h, 0x846ca68b);
+        h ^= h >>> 16;
+        return h >>> 0;
+    }
+
+    function spatialBinType(x, y, speciesCount, worldSize, initRange, binCount, seed) {
+        const span = Math.max(0.0001, initRange * worldSize);
+        const min = -0.5 * span;
+        const bx = clamp(Math.floor(((x - min) / span) * binCount), 0, binCount - 1);
+        const by = clamp(Math.floor(((y - min) / span) * binCount), 0, binCount - 1);
+        return hashBinCoords(bx, by, seed) % speciesCount;
     }
 
     function toFloat32SpeciesParams(raw, expectedSpeciesCount) {
@@ -418,6 +479,9 @@ async function main() {
                 gridSize,
                 boxSize,
                 pointSize: renderer.pointSize,
+                initRange,
+                typeInitMode,
+                typeBinCount,
             },
             speciesParams: speciesConfig,
         };
@@ -448,6 +512,9 @@ async function main() {
         const loadedGridSize = Number(simCfg.gridSize);
         const loadedBoxSize = Number(simCfg.boxSize);
         const loadedPointSize = Number(simCfg.pointSize);
+        const loadedInitRange = simCfg.initRange === undefined ? initRange : Number(simCfg.initRange);
+        const loadedTypeInitMode = normalizeTypeInitMode(simCfg.typeInitMode);
+        const loadedTypeBinCount = simCfg.typeBinCount === undefined ? typeBinCount : Number(simCfg.typeBinCount);
 
         if (!Number.isInteger(loadedN) || !isPowerOfTwo(loadedN)) {
             throw new Error('Invalid config: particleCount must be a power-of-two integer.');
@@ -455,8 +522,8 @@ async function main() {
         if (loadedN < 2 ** 12 || loadedN > 2 ** 20) {
             throw new Error('Invalid config: particleCount must be between 2^12 and 2^20.');
         }
-        if (!Number.isInteger(loadedSpecies) || loadedSpecies < 1 || loadedSpecies > 6) {
-            throw new Error('Invalid config: numSpecies must be an integer in [1, 6].');
+        if (!Number.isInteger(loadedSpecies) || loadedSpecies < 1 || loadedSpecies > 16) {
+            throw new Error('Invalid config: numSpecies must be an integer in [1, 16].');
         }
         if (!Number.isFinite(loadedDt) || loadedDt < 0.01 || loadedDt > 1.0) {
             throw new Error('Invalid config: dt must be in [0.01, 1.0].');
@@ -476,15 +543,30 @@ async function main() {
         if (!Number.isFinite(loadedPointSize) || loadedPointSize <= 0) {
             throw new Error('Invalid config: pointSize must be a positive number.');
         }
+        if (!Number.isFinite(loadedInitRange) || loadedInitRange < 0.05 || loadedInitRange > 1.0) {
+            throw new Error('Invalid config: initRange must be in [0.05, 1.0].');
+        }
+        if (simCfg.typeInitMode !== undefined && !TYPE_INIT_MODES.has(simCfg.typeInitMode)) {
+            throw new Error('Invalid config: typeInitMode must be "random" or "spatial-bins".');
+        }
+        if (!Number.isInteger(loadedTypeBinCount) || loadedTypeBinCount < 2 || loadedTypeBinCount > 64) {
+            throw new Error('Invalid config: typeBinCount must be an integer in [2, 64].');
+        }
 
         const loadedSpeciesParams = toFloat32SpeciesParams(rawConfig.speciesParams ?? {}, loadedSpecies);
 
         const oldStepsPerFrame = stepsPerFrame;
         const oldPointSize = renderer.pointSize;
+        const oldInitRange = initRange;
+        const oldTypeInitMode = typeInitMode;
+        const oldTypeBinCount = typeBinCount;
 
         try {
             stepsPerFrame = clamp(loadedStepsPerFrame, 1, 64);
             renderer.pointSize = clamp(loadedPointSize, 0.5, 20.0);
+            initRange = loadedInitRange;
+            typeInitMode = loadedTypeInitMode;
+            typeBinCount = loadedTypeBinCount;
 
             const gridExpLoaded = Math.log2(loadedGridSize);
             if (!Number.isInteger(gridExpLoaded)) {
@@ -498,11 +580,17 @@ async function main() {
                 boxSize: quantizeBoxSize(loadedBoxSize),
                 dt: loadedDt,
                 speciesParams: loadedSpeciesParams,
+                initRange: loadedInitRange,
+                typeInitMode: loadedTypeInitMode,
+                typeBinCount: loadedTypeBinCount,
             });
             syncUiLabels();
         } catch (err) {
             stepsPerFrame = oldStepsPerFrame;
             renderer.pointSize = oldPointSize;
+            initRange = oldInitRange;
+            typeInitMode = oldTypeInitMode;
+            typeBinCount = oldTypeBinCount;
             syncUiLabels();
             throw err;
         }
@@ -517,6 +605,9 @@ async function main() {
     let boxSize = quantizeBoxSize(parseFloat(ui.boxSize.value));
     let dt = parseFloat(ui.dt.value);
     let stepsPerFrame = parseInt(ui.spf.value, 10);
+    let initRange = parseFloat(ui.initRange.value);
+    let typeInitMode = normalizeTypeInitMode(ui.typeInitMode.value);
+    let typeBinCount = normalizeTypeBinCount(ui.typeBinCount.value);
     let paused = false;
     let speciesParams = makeSpeciesParams(numSpecies);
     let isReinitializing = false;
@@ -786,6 +877,9 @@ async function main() {
         ui.dt.value = dt.toFixed(2);
         ui.spf.value = String(stepsPerFrame);
         ui.pointSize.value = renderer.pointSize.toFixed(1);
+        ui.initRange.value = String(initRange);
+        ui.typeInitMode.value = typeInitMode;
+        ui.typeBinCount.value = String(typeBinCount);
         ui.particleVal.textContent = formatPow2Label(particleExp);
         ui.speciesVal.textContent = numSpecies;
         ui.dtVal.textContent = dt.toFixed(2);
@@ -793,6 +887,10 @@ async function main() {
         ui.pointSizeVal.textContent = renderer.pointSize.toFixed(1);
         ui.boxVal.textContent = boxSize.toFixed(0);
         ui.gridVal.textContent = `${gridSize.toLocaleString()} (2^${gridExp})`;
+        ui.initRangeVal.textContent = `${initRange.toFixed(2)} × box`;
+        ui.typeInitVal.textContent = TYPE_INIT_LABELS[typeInitMode];
+        ui.typeBinVal.textContent = formatTypeBinsLabel(typeBinCount);
+        ui.typeBinCount.disabled = typeInitMode !== 'spatial-bins';
         renderSpeciesPanel();
     }
 
@@ -801,14 +899,27 @@ async function main() {
         ui.btnPause.textContent = paused ? 'Resume' : 'Pause';
     }
 
-    function makeInitialParticles(count, speciesCount, worldSize, initRange = 0.8) {
-        const rng = mulberry32(33);
+    function makeInitialParticles(count, speciesCount, worldSize, options = {}) {
+        const {
+            initRange: particleInitRange = 0.8,
+            typeMode = 'random',
+            binCount = 8,
+            particleSeed = Date.now(),
+            typeSeed = Date.now(),
+        } = options;
+        const normalizedParticleSeed = particleSeed >>> 0;
+        const normalizedTypeSeed = typeSeed >>> 0;
+        const rng = mulberry32(normalizedParticleSeed);
         const positions = new Float32Array(count * 2);
         const types = new Uint32Array(count);
         for (let i = 0; i < count; i++) {
-            positions[i * 2] = (rng() - 0.5) * initRange * worldSize;
-            positions[i * 2 + 1] = (rng() - 0.5) * initRange * worldSize;
-            types[i] = Math.floor(rng() * speciesCount);
+            const x = (rng() - 0.5) * particleInitRange * worldSize;
+            const y = (rng() - 0.5) * particleInitRange * worldSize;
+            positions[i * 2] = x;
+            positions[i * 2 + 1] = y;
+            types[i] = typeMode === 'spatial-bins'
+                ? spatialBinType(x, y, speciesCount, worldSize, particleInitRange, binCount, normalizedTypeSeed)
+                : Math.floor(rng() * speciesCount);
         }
         return { positions, types };
     }
@@ -858,6 +969,9 @@ async function main() {
             gridSize: overrides.gridSize ?? gridSize,
             boxSize: quantizeBoxSize(overrides.boxSize ?? boxSize),
             dt: overrides.dt ?? dt,
+            initRange: overrides.initRange ?? initRange,
+            typeInitMode: normalizeTypeInitMode(overrides.typeInitMode ?? typeInitMode),
+            typeBinCount: normalizeTypeBinCount(overrides.typeBinCount ?? typeBinCount),
             speciesParams: nextSpeciesParams,
         };
 
@@ -901,7 +1015,13 @@ async function main() {
             if (savedParticleState) {
                 sim.uploadParticles(savedParticleState.positions, savedParticleState.types);
             } else {
-                const { positions, types } = makeInitialParticles(next.N, next.numSpecies, next.boxSize, parseFloat(ui.initRange.value));
+                const { positions, types } = makeInitialParticles(next.N, next.numSpecies, next.boxSize, {
+                    initRange: next.initRange,
+                    typeMode: next.typeInitMode,
+                    binCount: next.typeBinCount,
+                    particleSeed: Date.now(),
+                    typeSeed: Date.now() ^ 0x9e3779b9,
+                });
                 sim.uploadParticles(positions, types);
             }
 
@@ -912,6 +1032,9 @@ async function main() {
             gridSize = next.gridSize;
             boxSize = next.boxSize;
             dt = next.dt;
+            initRange = next.initRange;
+            typeInitMode = next.typeInitMode;
+            typeBinCount = next.typeBinCount;
             speciesParams = next.speciesParams;
             particleExp = Math.round(Math.log2(N));
             gridExp = Math.round(Math.log2(gridSize));
@@ -1052,6 +1175,22 @@ async function main() {
     });
     ui.initRange.addEventListener('input', (e) => {
         ui.initRangeVal.textContent = `${parseFloat(e.target.value).toFixed(2)} × box`;
+    });
+    ui.initRange.addEventListener('change', (e) => {
+        void safeRebuild({ initRange: parseFloat(e.target.value) });
+    });
+    ui.typeInitMode.addEventListener('change', (e) => {
+        const nextMode = normalizeTypeInitMode(e.target.value);
+        ui.typeInitVal.textContent = TYPE_INIT_LABELS[nextMode];
+        ui.typeBinCount.disabled = nextMode !== 'spatial-bins';
+        void safeRebuild({ typeInitMode: nextMode });
+    });
+    ui.typeBinCount.addEventListener('input', (e) => {
+        const nextBinCount = normalizeTypeBinCount(e.target.value);
+        ui.typeBinVal.textContent = formatTypeBinsLabel(nextBinCount);
+    });
+    ui.typeBinCount.addEventListener('change', (e) => {
+        void safeRebuild({ typeBinCount: normalizeTypeBinCount(e.target.value) });
     });
 
     // FPS tracking

@@ -42,8 +42,8 @@ export class LeniaRenderer {
         });
 
         // Palette buffer
-        const paletteData = new Float32Array(10 * 4);
-        for (let i = 0; i < 10; i++) {
+        const paletteData = new Float32Array(PALETTE.length * 4);
+        for (let i = 0; i < PALETTE.length; i++) {
             paletteData[i * 4 + 0] = PALETTE[i][0];
             paletteData[i * 4 + 1] = PALETTE[i][1];
             paletteData[i * 4 + 2] = PALETTE[i][2];

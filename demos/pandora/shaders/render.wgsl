@@ -71,7 +71,7 @@ fn vs_main(
 
     out.position = vec4f(ndc + pixel_offset, 0.0, 1.0);
     out.uv = corner;
-    out.color = palette[type_id % 10u].color.rgb;
+    out.color = palette[type_id % 16u].color.rgb;
 
     return out;
 }
