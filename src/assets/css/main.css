@@ -301,8 +301,8 @@ hr {
 
 .pub-card-media {
   position: relative;
-  width: 180px;
-  height: 110px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 3px;
   overflow: hidden;
   background: var(--surface-2);
@@ -311,12 +311,13 @@ hr {
 .pub-card-media img,
 .pub-card-media video {
   width: 100%; height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   position: absolute;
   top: 0; left: 0;
 }
-.pub-card-media video { opacity: 0; transition: opacity 0.25s; }
-.pub-card:hover .pub-card-media video { opacity: 1; }
+.pub-card-media--has-image video { opacity: 0; transition: opacity 0.25s; }
+.pub-card:hover .pub-card-media--has-image video { opacity: 1; }
 
 .pub-card-body { min-width: 0; }
 
@@ -668,7 +669,7 @@ hr {
 .news-list { display: flex; flex-direction: column; gap: 0; }
 .news-item {
   display: grid;
-  grid-template-columns: 90px 1fr;
+  grid-template-columns: 7.25rem minmax(0, 1fr);
   gap: 1rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);
@@ -682,7 +683,7 @@ hr {
   padding-top: 0.15rem;
   white-space: nowrap;
 }
-.news-text { color: var(--text); line-height: 1.6; }
+.news-text { color: var(--text); line-height: 1.6; min-width: 0; }
 .news-text a { color: var(--accent); }
 
 /* Awards */
@@ -798,7 +799,7 @@ details.awards-details summary::-webkit-details-marker { display: none; }
   }
   .pub-card-media {
     width: 100%;
-    height: 160px;
+    aspect-ratio: 16 / 10;
   }
   .blog-item {
     grid-template-columns: 1fr;

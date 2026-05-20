@@ -1,11 +1,11 @@
 <div class="pub-card {% if not pub.image and not pub.video %}pub-card--no-media{% endif %}">
   {% if pub.image or pub.video %}
-  <div class="pub-card-media">
+  <div class="pub-card-media {% if pub.image %}pub-card-media--has-image{% else %}pub-card-media--video-only{% endif %}">
     {% if pub.image %}
       <img src="{{ pub.image }}" alt="{{ pub.title }}" loading="lazy">
     {% endif %}
     {% if pub.video %}
-      <video src="{{ pub.video }}" loop muted playsinline preload="none"></video>
+      <video src="{{ pub.video }}" loop muted playsinline preload="{% if pub.image %}none{% else %}metadata{% endif %}"></video>
     {% endif %}
   </div>
   {% endif %}
