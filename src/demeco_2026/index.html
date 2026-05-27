@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slideshow</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.03) 40px);
+      pointer-events: none;
+    }
+
+    body.web-slide {
+      background: transparent;
+    }
+
+    body.web-slide::before {
+      display: none;
+    }
+
+    #slide-img,
+    #slide-frame {
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+      display: block;
+      position: relative;
+      transition: opacity 0.2s ease;
+    }
+
+    #slide-img.fade,
+    #slide-frame.fade { opacity: 0; }
+
+    #slide-frame {
+      width: 100vw;
+      height: 100vh;
+      border: 0;
+    }
+
+    #controls {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    #controls .btn {
+      pointer-events: auto;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 14px;
+      font: 14px/1.2 sans-serif;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #btn-prev { left: 12px; }
+    #btn-next { right: 12px; }
+
+    #btn-focus {
+      pointer-events: auto;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 12px;
+      font: 13px/1.2 sans-serif;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <img id="slide-img" alt="" />
+  <iframe id="slide-frame" title="" style="display: none;"></iframe>
+  <div id="controls" aria-hidden="true">
+    <button id="btn-prev" class="btn" type="button">Prev</button>
+    <button id="btn-next" class="btn" type="button">Next</button>
+    <button id="btn-focus" type="button">Exit Web</button>
+  </div>
+
+  <script>
+    const SLIDES = [
+      { src: "title.png",                bg: "#000000" },
+      { src: "pattern.png",              bg: "#000000" },
+      { src: "comparison.png",           bg: "#000000" },
+      { src: "perception+adaptation.png", bg: "#ffffff" },
+      // {url: "https://distill.pub/2020/growing-ca/"},
+      // {url: "https://distill.pub/selforg/2021/textures/"},
+      { url: "https://dynca.github.io/" },
+      { src: "meshnca_perception_new.png", bg: "#000000" },
+      {url: "https://meshnca.github.io/"},
+      { src: "perception+adaptation.png", bg: "#d4d4d4" },
+      { url: "https://noisenca.github.io/" },
+      {url: "https://cells2pixels.github.io/#growing"},
+      // { src: "npa_architecture.png", bg: "#000000" },
+      {url: "https://selforg-npa.github.io/#growing"},
+      
+
+      
+      
+    ];
+
+    let current = 0;
+    const img = document.getElementById('slide-img');
+    const frame = document.getElementById('slide-frame');
+    const controls = document.getElementById('controls');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnFocus = document.getElementById('btn-focus');
+
+    document.body.tabIndex = -1;
+
+    const preloadBin = document.createElement("div");
+    preloadBin.id = "preload-bin";
+    preloadBin.style.display = "none";
+    document.body.appendChild(preloadBin);
+
+    SLIDES.forEach(slide => {
+      if (!slide.url) return;
+      const preload = document.createElement("iframe");
+      preload.src = slide.url;
+      preload.loading = "eager";
+      preload.setAttribute("aria-hidden", "true");
+      preloadBin.appendChild(preload);
+    });
+
+    function setIframeInteractive(enabled) {
+      frame.style.pointerEvents = enabled ? "auto" : "none";
+      btnFocus.textContent = enabled ? "Exit Web" : "Interact";
+      if (!enabled) document.body.focus();
+    }
+
+    function show(index) {
+      const slide = SLIDES[index];
+      img.classList.add('fade');
+      frame.classList.add('fade');
+
+      setTimeout(() => {
+        if (slide.url) {
+          document.body.classList.add("web-slide");
+          img.style.display = "none";
+          frame.style.display = "block";
+          controls.style.display = "block";
+          setIframeInteractive(true);
+          frame.src = slide.url;
+          frame.onload = () => frame.classList.remove('fade');
+          frame.onerror = () => frame.classList.remove('fade');
+          return;
+        }
+
+        document.body.classList.remove("web-slide");
+        document.body.style.background = slide.bg;
+        frame.style.display = "none";
+        controls.style.display = "none";
+        setIframeInteractive(false);
+        img.style.display = "block";
+        img.src = slide.src;
+        img.onload = () => img.classList.remove('fade');
+        img.onerror = () => img.classList.remove('fade');
+      }, 180);
+    }
+
+    btnPrev.addEventListener("click", () => {
+      if (current > 0) show(--current);
+    });
+
+    btnNext.addEventListener("click", () => {
+      if (current < SLIDES.length - 1) show(++current);
+    });
+
+    btnFocus.addEventListener("click", () => {
+      setIframeInteractive(frame.style.pointerEvents === "none");
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft'  && current > 0)                show(--current);
+      if (e.key === 'ArrowRight' && current < SLIDES.length - 1) show(++current);
+    });
+
+    if (SLIDES.length) {
+      document.body.style.background = SLIDES[0].bg || "#000000";
+      show(0);
+    }
+  </script>
+</body>
+</html>

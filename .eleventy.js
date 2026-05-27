@@ -37,6 +37,8 @@ module.exports = function (eleventyConfig) {
   // Pass-through copies
   eleventyConfig.addPassthroughCopy("src/assets");
   eleventyConfig.addPassthroughCopy("src/images");
+  eleventyConfig.addPassthroughCopy({ "src/demeco_2026/*.png": "demeco_2026" });
+  eleventyConfig.addPassthroughCopy({ "src/demeco_2026/*.jpg": "demeco_2026" });
   eleventyConfig.addPassthroughCopy("src/data");
   eleventyConfig.addPassthroughCopy("legacy");
   eleventyConfig.addPassthroughCopy({ "cv": "cv" }); // root-level cv/ → _site/cv/
