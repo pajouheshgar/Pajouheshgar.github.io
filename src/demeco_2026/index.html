@@ -61,7 +61,7 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      display: none;
+      display: block;
       z-index: 10;
     }
 
@@ -83,6 +83,7 @@
     #btn-next { right: 12px; }
 
     #btn-focus {
+      display: none;
       pointer-events: auto;
       position: absolute;
       top: 12px;
@@ -186,7 +187,7 @@
           document.body.classList.add("web-slide");
           img.style.display = "none";
           frame.style.display = "block";
-          controls.style.display = "block";
+          btnFocus.style.display = "block";
           setIframeInteractive(true);
           frame.src = slide.url;
           frame.onload = () => frame.classList.remove('fade');
@@ -197,7 +198,7 @@
         document.body.classList.remove("web-slide");
         document.body.style.background = slide.bg;
         frame.style.display = "none";
-        controls.style.display = "none";
+        btnFocus.style.display = "none";
         setIframeInteractive(false);
         img.style.display = "block";
         img.src = slide.src;
