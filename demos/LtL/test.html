@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<title>LtL correctness tests</title>
+<meta charset="utf-8">
+<script src="swissgl.js"></script>
+<script src="ltl-core.js"></script>
+<style>
+    body {background: #0b0f16; color: #cfd8e3; margin: 24px;
+          font: 13px/1.6 ui-monospace, Menlo, monospace;}
+    h1 {font-size: 16px; color: #fff;}
+    .pass {color: #6fdc8c;}
+    .fail {color: #ff6b6b; font-weight: bold;}
+    .info {color: #7f8ea3;}
+    #summary {font-size: 15px; margin-top: 12px;}
+</style>
+<h1>Larger than Life — GPU vs vanilla JS reference</h1>
+<div class="info">Grid 128&times;128, periodic boundary, counts include the
+    cell itself. The GPU pipeline (SAT scan passes + boxSum rule shader from
+    ltl-core.js) is compared against a plain double-for-loop implementation.</div>
+<div id="log"></div>
+<div id="summary"></div>
+<canvas id="c" width="8" height="8" style="display:none"></canvas>
+<script>
+'use strict';
+const logEl = document.getElementById('log');
+const say = (msg, cls) => {
+    const d = document.createElement('div');
+    d.textContent = msg;
+    if (cls) d.className = cls;
+    logEl.append(d);
+    console.log(msg);
+};
+const tick = () => new Promise(r => setTimeout(r));   // let the page paint
+
+const glsl = SwissGL(document.getElementById('c'));
+const N = 128;
+const sim = makeLtL(glsl, N);
+let failures = 0;
+
+const toBits = f32 => Uint8Array.from(f32, v => v > 0.5 ? 1 : 0);
+
+// vanilla reference: neighbor counts over the (2R+1)^2 box, periodic wrap
+// (wrapped indices precomputed once so large radii finish in seconds)
+function naiveCounts(cur, R) {
+    const cnt = new Int32Array(N*N);
+    const wrap = new Int32Array(N + 2*R);
+    for (let i = 0; i < N + 2*R; ++i) wrap[i] = (i - R + N) % N;
+    for (let y = 0; y < N; ++y) for (let x = 0; x < N; ++x) {
+        let n = 0;
+        for (let dy = -R; dy <= R; ++dy) {
+            const row = wrap[y + dy + R] * N;
+            for (let dx = -R; dx <= R; ++dx)
+                n += cur[row + wrap[x + dx + R]];
+        }
+        cnt[y*N + x] = n;
+    }
+    return cnt;
+}
+function naiveStep(cur, rule) {
+    const cnt = naiveCounts(cur, rule.R);
+    const next = new Uint8Array(N*N);
+    for (let i = 0; i < N*N; ++i) {
+        const n = cnt[i];
+        next[i] = cur[i] ? (n >= rule.s1 && n <= rule.s2 ? 1 : 0)
+                         : (n >= rule.b1 && n <= rule.b2 ? 1 : 0);
+    }
+    return next;
+}
+
+function compare(name, got, want, ctx) {
+    let bad = 0, first = '';
+    for (let i = 0; i < N*N; ++i)
+        if (got[i] != want[i] && ++bad == 1)
+            first = ` — first at (${i%N},${i/N|0}): gpu ${got[i]} js ${want[i]}`;
+    if (bad) ++failures;
+    say(`${bad ? 'FAIL' : 'PASS'}  ${name}${ctx ? '  [' + ctx + ']' : ''}` +
+        (bad ? ` — ${bad} mismatching cells${first}` : ''),
+        bad ? 'fail' : 'pass');
+}
+
+async function run() {
+    // 1. SAT vs JS prefix sums
+    sim.randomize(1);
+    const cur0 = toBits(sim.readAlive());
+    sim.buildSAT();
+    const gpuSat = sim.sat[0].readSync().slice();
+    const js = new Float64Array(N*N);
+    for (let y = 0; y < N; ++y) for (let x = 0; x < N; ++x)
+        js[y*N+x] = cur0[y*N+x]
+            + (x ? js[y*N+x-1] : 0) + (y ? js[(y-1)*N+x] : 0)
+            - (x && y ? js[(y-1)*N+x-1] : 0);
+    compare('summed-area table', gpuSat, js);
+    await tick();
+
+    // 2. GPU boxSum vs naive counts (uses the SAT built above)
+    for (const R of [2, 17]) {
+        const cnts = glsl({sat: sim.sat[0], radius: R, FP: BOXSUM_GLSL + `
+            void fragment() {
+                FOut = vec4(boxSum(I, int(radius), ViewSize.x), 0.0, 0.0, 1.0);
+            }`}, {size: [N, N], format: 'r32f', tag: 'cnt'}).readSync().slice();
+        compare('periodic box sum', cnts, naiveCounts(cur0, R), `R=${R}`);
+        await tick();
+    }
+
+    // 3. one full step vs naive, several rules (R=63 = max wrap: 2R+1 = N-1)
+    const cases = [
+        {R: 1,  b1: 3,    b2: 3,    s1: 3,    s2: 4,     name: 'Game of Life'},
+        {R: 5,  b1: 34,   b2: 45,   s1: 34,   s2: 58,    name: "Bosco's rule"},
+        {R: 10, b1: 123,  b2: 170,  s1: 123,  s2: 212,   name: 'Bugsmovie'},
+        {R: 63, b1: 4000, b2: 8000, s1: 3500, s2: 12000, name: 'max radius'},
+    ];
+    for (const [i, c] of cases.entries()) {
+        say(`running ${c.name} (R=${c.R})…`, 'info');
+        await tick();
+        sim.randomize(100 + i);
+        const cur = toBits(sim.readAlive());
+        sim.step(c);
+        compare('one step', toBits(sim.readAlive()), naiveStep(cur, c),
+                `${c.name}: R${c.R} B[${c.b1},${c.b2}] S[${c.s1},${c.s2}]`);
+        await tick();
+    }
+
+    // 4. 10 consecutive steps (catches state/SAT staleness between steps)
+    {
+        const rule = {R: 5, b1: 34, b2: 45, s1: 34, s2: 58};
+        sim.randomize(7);
+        let ref = toBits(sim.readAlive());
+        for (let i = 0; i < 10; ++i) { sim.step(rule); ref = naiveStep(ref, rule); }
+        compare('10 consecutive steps', toBits(sim.readAlive()), ref, "Bosco's rule");
+    }
+
+    const s = document.getElementById('summary');
+    s.textContent = failures ? `${failures} test(s) FAILED` : 'ALL TESTS PASSED';
+    s.className = failures ? 'fail' : 'pass';
+    console.log('TEST DONE ' + (failures ? 'FAIL' : 'PASS'));
+}
+run();
+</script>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<title>LtL debug</title>
+<script src="swissgl.js"></script>
+<script src="ltl-core.js"></script>
+<canvas id="c" width="8" height="8"></canvas>
+<script>
+'use strict';
+const glsl = SwissGL(document.getElementById('c'));
+const N = 128;
+const sim = makeLtL(glsl, N);
+// no awaits: headless chrome freezes timers soon after load, so the whole
+// sweep runs synchronously in one callback
+setTimeout(() => {
+    for (const R of [32, 48, 60, 62, 63]) {
+        sim.randomize(1);
+        const t0 = performance.now();
+        sim.step({R, b1: 3, b2: 3, s1: 3, s2: 4});
+        const a = sim.readAlive();
+        console.log(`R=${R} done in ${(performance.now() - t0).toFixed(1)}ms, alive[0]=${a[0]}`);
+    }
+    console.log('DEBUG DONE');
+}, 100);
+</script>

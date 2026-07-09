@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<title>Larger than Life</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="swissgl.js"></script>
+<script src="ltl-core.js"></script>
+<style>
+    body, html {margin: 0; padding: 0; overflow: hidden; background: #000;
+                font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;}
+    #c {width: 100vw; height: 100vh; touch-action: none;}
+    #panel {
+        position: fixed; top: 12px; left: 12px; width: 250px;
+        background: rgba(12, 16, 24, 0.88); color: #cfd8e3;
+        border: 1px solid rgba(120, 160, 220, 0.25); border-radius: 10px;
+        padding: 12px 14px; font-size: 12.5px; backdrop-filter: blur(6px);
+        user-select: none;
+    }
+    #panel h1 {font-size: 14px; margin: 0 0 2px; color: #fff; font-weight: 600;}
+    #panel .sub {color: #7f8ea3; font-size: 11px; margin-bottom: 10px;}
+    #panel .row {display: flex; align-items: center; gap: 8px; margin: 5px 0;}
+    #panel .row label {flex: 0 0 78px; color: #9fb0c7;}
+    #panel .row input[type=range] {flex: 1; accent-color: #5b9dd9; min-width: 0;}
+    #panel .row .val {flex: 0 0 38px; text-align: right; color: #fff;
+                      font-variant-numeric: tabular-nums;}
+    #panel .row .ratio {flex: 0 0 34px; text-align: right; color: #7f8ea3;
+                        font-size: 10.5px; font-variant-numeric: tabular-nums;}
+    #panel .row input.val {
+        flex: 0 0 44px; width: 44px; background: #1a2436; color: #fff;
+        border: 1px solid #3a4f70; border-radius: 4px; padding: 1px 4px;
+        font-size: 12px; text-align: right; appearance: textfield;
+    }
+    #panel .row input.val::-webkit-inner-spin-button,
+    #panel .row input.val::-webkit-outer-spin-button
+        {-webkit-appearance: none; margin: 0;}
+    #panel .sect {margin-top: 10px; padding-top: 8px;
+                  border-top: 1px solid rgba(120, 160, 220, 0.15);}
+    #panel button, #panel select {
+        background: #223048; color: #dbe6f4; border: 1px solid #3a4f70;
+        border-radius: 6px; padding: 4px 9px; font-size: 12px; cursor: pointer;
+    }
+    #panel button:hover {background: #2c3f5e;}
+    #panel select {width: 100%;}
+    #panel .btns {display: flex; gap: 6px; margin-top: 8px;}
+    #panel .btns button {flex: 1;}
+    #rule {color: #8fd0a0; font-size: 11.5px; margin-top: 8px; text-align: center;}
+    #hint {color: #6b7a90; font-size: 10.5px; margin-top: 6px; line-height: 1.4;}
+</style>
+<canvas id="c"></canvas>
+<div id="panel">
+    <h1>Larger than Life</h1>
+    <div class="sub">summed-area-table neighbor counting, periodic boundary</div>
+
+    <div class="row"><label>preset</label>
+        <select id="preset" style="flex:1">
+            <option value="bosco" selected>Bosco's rule</option>
+            <option value="life">Game of Life</option>
+            <option value="bugsmovie">Bugsmovie</option>
+            <option value="majority">Majority</option>
+        </select>
+    </div>
+    <div class="row"><label>grid size</label>
+        <input type="range" id="gridN" min="7" max="11" step="1" value="9">
+        <span class="val" id="gridNv">512</span></div>
+
+    <div class="sect"></div>
+    <div class="row"><label>radius R</label>
+        <input type="range" id="R" min="1" max="32" step="1" value="5">
+        <span class="val" id="Rv">5</span></div>
+    <div class="row"><label>birth b1</label>
+        <input type="range" id="b1" min="0" max="121" step="1" value="34">
+        <input type="number" class="val" id="b1v" min="0" value="34"><span class="ratio" id="b1r"></span></div>
+    <div class="row"><label>birth b2</label>
+        <input type="range" id="b2" min="0" max="121" step="1" value="45">
+        <input type="number" class="val" id="b2v" min="0" value="45"><span class="ratio" id="b2r"></span></div>
+    <div class="row"><label>survive s1</label>
+        <input type="range" id="s1" min="0" max="121" step="1" value="34">
+        <input type="number" class="val" id="s1v" min="0" value="34"><span class="ratio" id="s1r"></span></div>
+    <div class="row"><label>survive s2</label>
+        <input type="range" id="s2" min="0" max="121" step="1" value="58">
+        <input type="number" class="val" id="s2v" min="0" value="58"><span class="ratio" id="s2r"></span></div>
+    <div id="rule"></div>
+
+    <div class="sect"></div>
+    <div class="row"><label>steps/frame</label>
+        <input type="range" id="speed" min="-3" max="3" step="1" value="0">
+        <span class="val" id="speedv">1</span></div>
+    <div class="row"><label>brush</label>
+        <input type="range" id="brush" min="1" max="60" step="1" value="12">
+        <span class="val" id="brushv">12</span></div>
+    <div class="row"><label>step</label>
+        <span class="val" id="stepc" style="flex:1; text-align:left">0</span></div>
+    <div class="btns">
+        <button id="pause">Pause</button>
+        <button id="soup">Soup</button>
+        <button id="clear">Clear</button>
+    </div>
+    <div class="btns">
+        <button id="lifeR" title="Set the birth/survival ranges to Game of Life rescaled to the current radius">Rescale Life to R</button>
+    </div>
+    <div class="btns">
+        <button id="load">Load creature&hellip;</button>
+    </div>
+    <input type="file" id="file" accept=".json,application/json" style="display:none">
+    <div id="hint">Neighbor count is over the (2R+1)&sup2; box and includes the
+        cell itself (Evans' convention). Drag: left = draw, right = erase.
+        Shift+drag: select a region and save it as a creature file (zero
+        borders trimmed). After loading: click to paste, Esc / right-click to
+        stop.</div>
+</div>
+<script>
+'use strict';
+const canvas = document.getElementById('c');
+const glsl = SwissGL(canvas);
+const $ = id => document.getElementById(id);
+
+let N = 512;
+let sim = makeLtL(glsl, N);
+let stepCount = 0, stepAcc = 0;   // stepAcc carries fractional steps/frame
+
+// ---- parameters / UI ----
+// speed is the log2 of steps-per-frame: -3 => 1 step every 8 frames
+const P = {R: 5, b1: 34, b2: 45, s1: 34, s2: 58, speed: 0, brush: 12};
+const PRESETS = {
+    bosco:     {R: 5,  b1: 34,  b2: 45,  s1: 34,  s2: 58},
+    life:      {R: 1,  b1: 3,   b2: 3,   s1: 3,   s2: 4},
+    bugsmovie: {R: 10, b1: 123, b2: 170, s1: 123, s2: 212},
+    majority:  {R: 4,  b1: 41,  b2: 81,  s1: 41,  s2: 81},
+};
+let paused = false;
+
+function syncUI() {
+    const maxCount = (2*P.R + 1)**2;
+    for (const k of ['b1','b2','s1','s2']) {
+        $(k).max = maxCount;
+        $(k+'v').max = maxCount;
+        P[k] = Math.min(P[k], maxCount);
+        $(k+'r').textContent = (P[k] / maxCount).toFixed(2);
+    }
+    for (const k in P) {
+        $(k).value = P[k];
+        const el = $(k+'v');
+        if (el.tagName == 'INPUT') {                 // typeable value box
+            if (document.activeElement != el) el.value = P[k];
+        } else el.textContent = P[k];
+    }
+    $('speedv').textContent =
+        P.speed < 0 ? '1/' + (1 << -P.speed) : String(1 << P.speed);
+    $('rule').textContent =
+        `R${P.R} / B [${P.b1}, ${P.b2}] / S [${P.s1}, ${P.s2}]`;
+}
+function applyParam(k, val) {
+    P[k] = val;
+    if (k == 'b1' && P.b2 < P.b1) P.b2 = P.b1;   // keep ranges ordered
+    if (k == 'b2' && P.b1 > P.b2) P.b1 = P.b2;
+    if (k == 's1' && P.s2 < P.s1) P.s2 = P.s1;
+    if (k == 's2' && P.s1 > P.s2) P.s1 = P.s2;
+    if (k == 'R') P.R = Math.min(P.R, (N >> 1) - 1);
+    syncUI();
+}
+for (const k in P) $(k).addEventListener('input', () => applyParam(k, +$(k).value));
+for (const k of ['b1','b2','s1','s2'])          // commit typed values on Enter/blur
+    $(k+'v').addEventListener('change', () => {
+        const maxCount = (2*P.R + 1)**2;
+        const v = Math.round(+$(k+'v').value);
+        applyParam(k, Math.max(0, Math.min(maxCount, isNaN(v) ? P[k] : v)));
+        $(k+'v').value = P[k];
+    });
+$('preset').addEventListener('change', () => {
+    Object.assign(P, PRESETS[$('preset').value]);
+    syncUI(); reseed();
+});
+$('gridN').addEventListener('input', () =>    // live label while dragging
+    $('gridNv').textContent = 1 << +$('gridN').value);
+$('gridN').addEventListener('change', () => { // rebuild only on release
+    N = 1 << +$('gridN').value;
+    $('gridNv').textContent = N;
+    P.R = Math.min(P.R, (N >> 1) - 1);
+    syncUI();
+    sim = makeLtL(glsl, N);
+    reseed();
+});
+// Game of Life rescaled to radius R (Evans): counts as fractions of the
+// (2R+1)^2 box with half-open interval edges — birth [2.5,3.5)/9,
+// survival [2.5,4.5)/9 (counts include the cell itself). R=1 gives exactly
+// B[3,3] S[3,4]; R=5 lands next to Bosco's rule.
+$('lifeR').addEventListener('click', () => {
+    const A = (2*P.R + 1)**2;
+    P.b1 = Math.ceil(A * 2.5/9);
+    P.b2 = Math.ceil(A * 3.5/9) - 1;
+    P.s1 = Math.ceil(A * 2.5/9);
+    P.s2 = Math.ceil(A * 4.5/9) - 1;
+    syncUI();
+});
+$('pause').addEventListener('click', () => {
+    paused = !paused;
+    $('pause').textContent = paused ? 'Play' : 'Pause';
+});
+$('soup').addEventListener('click', () => reseed());
+$('clear').addEventListener('click', () => { sim.clear(); stepCount = 0; });
+syncUI();
+
+function reseed() { sim.randomize(); stepCount = 0; }
+reseed();
+
+// ---- pointer state: draw / erase / shift+drag selection / paste ----
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+const pointer = {u: -1, v: -1, buttons: 0};
+let selecting = false, selA = null, selB = null;   // selection corners (grid uv)
+let creature = null, pasting = false, creatureSeq = 0;
+
+const setPointer = e => {
+    const w = canvas.clientWidth, h = canvas.clientHeight, m = Math.min(w, h);
+    pointer.u = (e.offsetX - w/2) / m + 0.5;          // grid uv under Aspect:'fit'
+    pointer.v = (h/2 - e.offsetY) / m + 0.5;
+    pointer.buttons = e.buttons;
+};
+const inGrid = () => pointer.u >= 0 && pointer.u <= 1 && pointer.v >= 0 && pointer.v <= 1;
+
+canvas.addEventListener('pointerdown', e => {
+    canvas.setPointerCapture(e.pointerId);
+    setPointer(e);
+    if (e.shiftKey && (e.buttons & 1)) {
+        selecting = true;
+        selA = [pointer.u, pointer.v];
+        selB = [pointer.u, pointer.v];
+    } else if (pasting) {
+        if (e.buttons & 1 && inGrid()) stampCreature(pointer.u, pointer.v);
+        else if (e.buttons & 2) stopPasting();
+    }
+});
+canvas.addEventListener('pointermove', e => {
+    setPointer(e);
+    if (selecting) selB = [pointer.u, pointer.v];
+});
+canvas.addEventListener('pointerup', e => {
+    setPointer(e);
+    if (selecting) {
+        selecting = false;
+        saveSelection();
+        selA = selB = null;
+    }
+});
+canvas.addEventListener('pointerout', () => { pointer.buttons = 0; pointer.u = -1; });
+window.addEventListener('keydown', e => { if (e.key == 'Escape') stopPasting(); });
+
+function applyBrush() {
+    if (selecting || pasting) return;
+    const {u, v, buttons} = pointer;
+    if (!buttons || !inGrid()) return;
+    const common = {brushUV: [u, v], ext: 2*P.brush/N, Grid: [1], VP:
+        'vec4(brushUV*2.0 - 1.0 + XY*ext, 0.0, 1.0)'};
+    if (buttons & 1)        // draw: max blend stamps 1s inside the disc
+        glsl({...common, Blend: 'max(s,d)',
+              FP: 'vec4(step(length(XY), 1.0))'}, sim.state[0]);
+    else if (buttons & 2)   // erase: min blend stamps 0s inside the disc
+        glsl({...common, Blend: 'min(s,d)',
+              FP: 'vec4(1.0 - step(length(XY), 1.0))'}, sim.state[0]);
+}
+
+// ---- creature save: trim zero borders, download JSON with the rule ----
+function saveSelection() {
+    const x0 = Math.max(0, Math.floor(Math.min(selA[0], selB[0]) * N));
+    const x1 = Math.min(N - 1, Math.ceil(Math.max(selA[0], selB[0]) * N) - 1);
+    const y0 = Math.max(0, Math.floor(Math.min(selA[1], selB[1]) * N));
+    const y1 = Math.min(N - 1, Math.ceil(Math.max(selA[1], selB[1]) * N) - 1);
+    if (x1 < x0 || y1 < y0) return;
+    const w = x1 - x0 + 1, h = y1 - y0 + 1;
+    const buf = sim.readAlive([x0, y0, w, h]);            // rows bottom-up
+    const alive = (i, j) => buf[j*w + i] > 0.5;
+    let l = 0, r = w - 1, b = 0, t = h - 1;
+    const colEmpty = i => { for (let j = b; j <= t; ++j) if (alive(i, j)) return false; return true; };
+    const rowEmpty = j => { for (let i = l; i <= r; ++i) if (alive(i, j)) return false; return true; };
+    while (l <= r && colEmpty(l)) ++l;
+    while (r >= l && colEmpty(r)) --r;
+    while (b <= t && rowEmpty(b)) ++b;
+    while (t >= b && rowEmpty(t)) --t;
+    if (l > r) { alert('Selection contains no alive cells — nothing saved.'); return; }
+    const rows = [];                                      // top-to-bottom
+    for (let j = t; j >= b; --j) {
+        let s = '';
+        for (let i = l; i <= r; ++i) s += alive(i, j) ? '1' : '0';
+        rows.push(s);
+    }
+    const json = {
+        format: 'ltl-creature-v1',
+        rule: {R: P.R, b1: P.b1, b2: P.b2, s1: P.s1, s2: P.s2},
+        size: [r - l + 1, t - b + 1],
+        cells: rows,
+    };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(json, null, 1)],
+                                          {type: 'application/json'}));
+    a.download = `creature_R${P.R}_B${P.b1}-${P.b2}_S${P.s1}-${P.s2}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+// ---- creature load & paste ----
+$('load').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', async () => {
+    const f = $('file').files[0];
+    $('file').value = '';
+    if (!f) return;
+    try {
+        const c = JSON.parse(await f.text());
+        const rows = c.cells;
+        const h = rows.length, w = rows[0].length;
+        const data = new Uint8Array(w * h);
+        for (let j = 0; j < h; ++j)        // rows are top-to-bottom; texture row 0 = bottom
+            for (let i = 0; i < w; ++i)
+                data[(h - 1 - j)*w + i] = rows[j][i] == '1' ? 255 : 0;
+        creature = {w, h, rule: c.rule || null,
+            tex: glsl({}, {data, size: [w, h], format: 'r8',
+                           tag: 'creature' + (++creatureSeq)})};
+        pasting = true;
+        $('load').textContent = 'Pasting… (Esc to stop)';
+    } catch (err) {
+        alert('Could not load creature: ' + err.message);
+    }
+});
+function stopPasting() {
+    pasting = false;
+    $('load').textContent = 'Load creature…';
+}
+
+// snap the paste quad to whole cells so pattern texels map 1:1 to grid cells
+function creatureQuad(u, v) {
+    const {w, h} = creature;
+    const cx = Math.round(u*N - w/2), cy = Math.round(v*N - h/2);
+    return {org: [(cx + w/2)/N, (cy + h/2)/N], ext: [w/N, h/N]};
+}
+function stampCreature(u, v) {
+    const {org, ext} = creatureQuad(u, v);
+    glsl({pat: creature.tex, org, ext, Grid: [1], Blend: 'max(s,d)',
+          VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)',
+          FP: 'float a = step(0.5, pat(UV).x); FOut = vec4(a, a, 0.0, a);'},
+         sim.state[0]);
+}
+
+// ---- main loop ----
+glsl.loop(() => {
+    glsl.adjustCanvas();
+    applyBrush();
+    if (!paused) {
+        stepAcc += 2 ** P.speed;
+        for (; stepAcc >= 1; --stepAcc) { sim.step(P); ++stepCount; }
+    }
+    if ($('stepc').textContent != stepCount) $('stepc').textContent = stepCount;
+
+    glsl({cells: sim.state[0], Aspect: 'fit', Clear: [0.01, 0.012, 0.02, 1], FP: `
+        vec2 s = cells(UV).rg;
+        vec3 c = vec3(0.015, 0.02, 0.035);                  // background
+        c += vec3(0.08, 0.30, 0.55) * s.g * s.g;            // trail
+        c = mix(c, vec3(0.98, 0.93, 0.75), s.r);            // alive
+        FOut = vec4(c, 1.0);`});
+
+    if (selecting && selA && selB) {                        // selection rectangle
+        const u0 = Math.min(selA[0], selB[0]), u1 = Math.max(selA[0], selB[0]);
+        const v0 = Math.min(selA[1], selB[1]), v1 = Math.max(selA[1], selB[1]);
+        glsl({org: [(u0 + u1)/2, (v0 + v1)/2], ext: [u1 - u0, v1 - v0],
+              Grid: [1], Aspect: 'fit', Blend: 'd*(1-sa)+s*sa',
+              VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+            vec2 bw = fwidth(UV) * 2.0;
+            bool edge = UV.x < bw.x || UV.x > 1.0 - bw.x
+                     || UV.y < bw.y || UV.y > 1.0 - bw.y;
+            FOut = vec4(1.0, 0.75, 0.3, edge ? 0.9 : 0.15);`});
+    } else if (pasting && creature && inGrid()) {           // paste ghost
+        const {org, ext} = creatureQuad(pointer.u, pointer.v);
+        glsl({pat: creature.tex, org, ext, Grid: [1], Aspect: 'fit',
+              Blend: 'd*(1-sa)+s*sa',
+              VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+            float a = step(0.5, pat(UV).x);
+            FOut = vec4(0.5, 1.0, 0.6, a*0.55 + 0.10);`});
+    } else if (inGrid()) {                                  // brush cursor ring
+        glsl({brushUV: [pointer.u, pointer.v], ext: 2*P.brush/N, Grid: [1],
+              Aspect: 'fit', Blend: 'd*(1-sa)+s*sa',
+              VP: 'vec4(brushUV*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+            float r = length(XY);
+            float ring = smoothstep(0.08, 0.0, abs(r - 0.94));
+            FOut = vec4(1.0, 1.0, 1.0, ring*0.35);`});
+    }
+});
+</script>
