@@ -38,12 +38,13 @@ export function makeSpeciesParams(numSpecies) {
     const cRep = new Float32Array(numSpecies);
     const wK = new Float32Array(numSpecies);
 
+    // "strings" regime defaults
     for (let i = 0; i < numSpecies; i++) {
-        muK[i] = i === 0 ? 0.0 : 4.0 + 0.5 * i;
-        sigmaK[i] = i === 0 ? 3.0 : 1.0 + 0.1 * i;
-        muG[i] = 0.6 + 0.10 * i;
-        sigmaG[i] = 0.15 + 0.02 * i;
-        cRep[i] = 1.0;
+        muK[i] = 0.2;
+        sigmaK[i] = 0.38;
+        muG[i] = 2.2;
+        sigmaG[i] = 1.3;
+        cRep[i] = 0.8;
         wK[i] = calcKWeight(muK[i], sigmaK[i]);
     }
 
@@ -62,10 +63,10 @@ export function makeRandomSpeciesParams(numSpecies) {
     const wK = new Float32Array(numSpecies);
 
     for (let i = 0; i < numSpecies; i++) {
-        muK[i] = i === 0 ? 0.0 : 0.25 + Math.random() * 7.75;
-        sigmaK[i] = 0.25 + Math.random() * 3.75;
-        muG[i] = 0.10 + Math.random() * 1.20;
-        sigmaG[i] = 0.05 + Math.random() * 0.45;
+        muK[i] = 0.0 + Math.random() * 3.0;
+        sigmaK[i] = 0.05 + Math.random() * 3.0;
+        muG[i] = 0.0 + Math.random() * 3.50;
+        sigmaG[i] = 0.05 + Math.random() * 3.0;
         cRep[i] = 0.30 + Math.random() * 1.70;
         wK[i] = calcKWeight(muK[i], sigmaK[i]);
     }

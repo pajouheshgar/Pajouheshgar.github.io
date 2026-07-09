@@ -38,28 +38,47 @@ export function calcKWeight(mu, sigma, dim = 2) {
 }
 
 /**
- * Brute-force lenia forward pass (matches torch_lenia.py lenia_forward).
+ * Brute-force lenia forward pass.
+ *
+ * Legacy mode (states omitted): matches torch_lenia.py lenia_forward exactly
+ * (no self-term, no state weighting) — used to validate against the Python fixture.
+ *
+ * State mode (states + stateDim given): matches the state-vector dynamics in
+ * forward.wgsl — U starts with a self-term, pairwise U contributions are
+ * weighted by relu(dot(s_i, s_j)), and a tangential state force
+ * dG/dU * (s_grad - s * <s, s_grad>) is returned as sForce.
  *
  * @param {Float64Array} positions - N*2 interleaved [x0,y0, x1,y1, ...]
  * @param {Uint32Array} types - N particle species indices
  * @param {Object} speciesParams - { muK, sigmaK, wK, muG, sigmaG, cRep } each Float64Array[M]
  * @param {number} N - particle count
  * @param {number} boxSize - periodic domain size
- * @returns {{ U: Float64Array, G: Float64Array, R: Float64Array, E: Float64Array, gradE: Float64Array }}
+ * @param {Float64Array|null} states - N*stateDim unit-length state vectors (optional)
+ * @param {number} stateDim - state vector dimension (required if states given)
+ * @returns {{ U, G, R, E, gradE, sForce }} (sForce is null in legacy mode)
  */
-export function leniaForward(positions, types, speciesParams, N, boxSize) {
+export function leniaForward(positions, types, speciesParams, N, boxSize, states = null, stateDim = 0) {
     const { muK, sigmaK, wK, muG, sigmaG, cRep } = speciesParams;
     const halfBox = boxSize * 0.5;
+    const useStates = states !== null && stateDim > 0;
 
     const U = new Float64Array(N);
     const R = new Float64Array(N);
     const gradU = new Float64Array(N * 2);
     const gradR = new Float64Array(N * 2);
+    const sGrad = useStates ? new Float64Array(N * stateDim) : null;
 
     // Pairwise interactions
     for (let i = 0; i < N; i++) {
         const xi = positions[i * 2];
         const yi = positions[i * 2 + 1];
+        const typeI = types[i];
+
+        // Self-term (state weight = dot(s,s) = 1)
+        if (useStates) {
+            const t0 = muK[typeI] / sigmaK[typeI];
+            U[i] += wK[typeI] * Math.exp(-t0 * t0);
+        }
 
         for (let j = 0; j < N; j++) {
             if (j === i) continue;
@@ -91,18 +110,35 @@ export function leniaForward(positions, types, speciesParams, N, boxSize) {
 
             // U-field contribution
             if (r >= rMinK && r <= rMaxK) {
+                let sw = 1.0;
+                let swRaw = 1.0;
+                if (useStates) {
+                    swRaw = 0.0;
+                    for (let d = 0; d < stateDim; d++) {
+                        swRaw += states[i * stateDim + d] * states[j * stateDim + d];
+                    }
+                    sw = Math.max(swRaw, 0.0);
+                }
+
                 const t = (r - muKj) / sigmaKj;
                 const pf = Math.exp(-t * t);
                 const dpfDr = pf * (-2.0 * t / sigmaKj);
 
-                U[i] += wKj * pf;
+                U[i] += wKj * pf * sw;
 
-                const factor = wKj * dpfDr * invR;
+                const factor = wKj * dpfDr * invR * sw;
                 gradU[i * 2] -= factor * dx;
                 gradU[i * 2 + 1] -= factor * dy;
+
+                if (useStates && swRaw > 0.0) {
+                    const kw = wKj * pf;
+                    for (let d = 0; d < stateDim; d++) {
+                        sGrad[i * stateDim + d] += kw * states[j * stateDim + d];
+                    }
+                }
             }
 
-            // Repulsion contribution
+            // Repulsion contribution (not state-weighted)
             if (r < 1.0) {
                 const omr = 1.0 - r;
                 R[i] += 0.5 * cRepJ * omr * omr;
@@ -114,10 +150,11 @@ export function leniaForward(positions, types, speciesParams, N, boxSize) {
         }
     }
 
-    // Growth, energy, and gradient
+    // Growth, energy, gradient, and state force
     const G = new Float64Array(N);
     const E = new Float64Array(N);
     const gradE = new Float64Array(N * 2);
+    const sForce = useStates ? new Float64Array(N * stateDim) : null;
 
     for (let i = 0; i < N; i++) {
         const typeI = types[i];
@@ -131,9 +168,20 @@ export function leniaForward(positions, types, speciesParams, N, boxSize) {
         E[i] = R[i] - G[i];
         gradE[i * 2] = gradR[i * 2] - dGdU * gradU[i * 2];
         gradE[i * 2 + 1] = gradR[i * 2 + 1] - dGdU * gradU[i * 2 + 1];
+
+        if (useStates) {
+            let sDotGrad = 0.0;
+            for (let d = 0; d < stateDim; d++) {
+                sDotGrad += states[i * stateDim + d] * sGrad[i * stateDim + d];
+            }
+            for (let d = 0; d < stateDim; d++) {
+                sForce[i * stateDim + d] = dGdU *
+                    (sGrad[i * stateDim + d] - states[i * stateDim + d] * sDotGrad);
+            }
+        }
     }
 
-    return { U, G, R, E, gradE };
+    return { U, G, R, E, gradE, sForce };
 }
 
 /**

@@ -14,6 +14,8 @@ struct SimParams {
     inv_eps: f32,
     R_max_sq: f32,
     dt: f32,
+    state_dim: u32,
+    freeze_states: u32,
 };
 
 @group(0) @binding(0) var<storage, read> positions_in: array<vec2f>;
@@ -22,6 +24,8 @@ struct SimParams {
 @group(0) @binding(3) var<storage, read_write> positions_out: array<vec2f>;
 @group(0) @binding(4) var<storage, read_write> types_out: array<u32>;
 @group(0) @binding(5) var<uniform> params: SimParams;
+@group(0) @binding(6) var<storage, read> states_in: array<f32>;
+@group(0) @binding(7) var<storage, read_write> states_out: array<f32>;
 
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3u) {
@@ -31,4 +35,9 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
     let dest = permutation[i];
     positions_out[dest] = positions_in[i];
     types_out[dest] = types_in[i];
+
+    let D = params.state_dim;
+    for (var d = 0u; d < D; d++) {
+        states_out[dest * D + d] = states_in[i * D + d];
+    }
 }

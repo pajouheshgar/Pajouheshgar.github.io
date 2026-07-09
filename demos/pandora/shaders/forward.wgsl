@@ -1,7 +1,9 @@
 // Particle-centric forward kernel with hash grid neighbor search.
-// Matches CUDA lenia_forward_kernel (lenia_cuda.cu:241-341).
+// Pairwise U interactions are weighted by relu(dot(s_i, s_j)) where s is a
+// unit-length state vector of dimension state_dim (<= MAX_STATE_DIM).
 
 const KERNEL_SIGMA_CUTOFF: f32 = 3.0;
+const MAX_STATE_DIM: u32 = 16u;
 
 struct SimParams {
     N: u32,
@@ -16,6 +18,8 @@ struct SimParams {
     inv_eps: f32,
     R_max_sq: f32,
     dt: f32,
+    state_dim: u32,
+    freeze_states: u32,
 };
 
 struct SpeciesParams {
@@ -36,6 +40,8 @@ struct SpeciesParams {
 @group(0) @binding(4) var<uniform> params: SimParams;
 @group(0) @binding(5) var<storage, read_write> scalar_fields: array<vec4f>;
 @group(0) @binding(6) var<storage, read_write> grad_e_out: array<vec2f>;
+@group(0) @binding(7) var<storage, read> states: array<f32>;
+@group(0) @binding(8) var<storage, read_write> state_force_out: array<f32>;
 
 fn dilate2d(x_in: u32) -> u32 {
     var x = x_in & 0x3FFu;
@@ -71,14 +77,25 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
 
     let p_i = positions[i];
     let type_i = types[i];
+    let sp_i = species[type_i];
     let gs = i32(params.grid_size);
     let mask = params.grid_size - 1u;
+    let D = min(params.state_dim, MAX_STATE_DIM);
+
+    // Load own state vector
+    var s_i: array<f32, MAX_STATE_DIM>;
+    var s_grad: array<f32, MAX_STATE_DIM>;
+    for (var d = 0u; d < D; d++) {
+        s_i[d] = states[i * D + d];
+        s_grad[d] = 0.0;
+    }
 
     // Find cell of particle i
     let cell_i = pos2cell(p_i);
 
-    // Accumulators
-    var U_accum: f32 = 0.0;
+    // Accumulators. U starts with the self-term (state weight = dot(s,s) = 1).
+    let t_self = sp_i.mu_k / sp_i.sigma_k;
+    var U_accum: f32 = sp_i.w_k * exp(-t_self * t_self);
     var R_accum: f32 = 0.0;
     var grad_U: vec2f = vec2f(0.0, 0.0);
     var grad_R: vec2f = vec2f(0.0, 0.0);
@@ -116,19 +133,32 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
 
                 let sp_j = species[type_j];
 
-                // U-field contribution
+                // U-field contribution, weighted by relu(dot(s_i, s_j))
                 if (r >= sp_j.r_min_k && r <= sp_j.r_max_k) {
+                    var sw: f32 = 0.0;
+                    for (var d = 0u; d < D; d++) {
+                        sw += s_i[d] * states[j * D + d];
+                    }
+                    let state_w = max(sw, 0.0);
+
                     let t = (r - sp_j.mu_k) / sp_j.sigma_k;
                     let pf = exp(-t * t);
                     let dpf_dr = pf * (-2.0 * t / sp_j.sigma_k);
 
-                    U_accum += sp_j.w_k * pf;
+                    U_accum += sp_j.w_k * pf * state_w;
 
-                    let factor = sp_j.w_k * dpf_dr * inv_r;
+                    let factor = sp_j.w_k * dpf_dr * inv_r * state_w;
                     grad_U -= factor * dr;
+
+                    if (sw > 0.0) {
+                        let kw = sp_j.w_k * pf;
+                        for (var d = 0u; d < D; d++) {
+                            s_grad[d] += kw * states[j * D + d];
+                        }
+                    }
                 }
 
-                // Repulsion contribution
+                // Repulsion contribution (not state-weighted)
                 if (r < 1.0) {
                     let omr = 1.0 - r;
                     R_accum += 0.5 * sp_j.c_rep * omr * omr;
@@ -141,7 +171,6 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
     }
 
     // Growth function using particle i's species params
-    let sp_i = species[type_i];
     let t_g = (U_accum - sp_i.mu_g) / sp_i.sigma_g;
     let G_val = exp(-t_g * t_g);
     let dG_dU = G_val * (-2.0 * t_g / sp_i.sigma_g);
@@ -149,6 +178,15 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
     // Energy
     let E_val = R_accum - G_val;
     let grad_E = grad_R - dG_dU * grad_U;
+
+    // State force: dG/dU times the component of s_grad tangent to the sphere at s_i
+    var s_dot_grad: f32 = 0.0;
+    for (var d = 0u; d < D; d++) {
+        s_dot_grad += s_i[d] * s_grad[d];
+    }
+    for (var d = 0u; d < D; d++) {
+        state_force_out[i * D + d] = dG_dU * (s_grad[d] - s_i[d] * s_dot_grad);
+    }
 
     // Write outputs
     scalar_fields[i] = vec4f(U_accum, G_val, R_accum, E_val);

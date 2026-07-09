@@ -44,7 +44,7 @@ export class LeniaSimulation {
     }
 
     _createBuffers() {
-        const { N, cellCount, numSpecies } = this.config;
+        const { N, cellCount, numSpecies, stateDim } = this.config;
         const d = this.device;
 
         // Positions (current, used as input to binning)
@@ -69,6 +69,24 @@ export class LeniaSimulation {
         this.buffers.typesBinned = d.createBuffer({
             size: N * 4,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+
+        // State vectors (current, stateDim floats per particle)
+        this.buffers.states = d.createBuffer({
+            size: N * stateDim * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+
+        // State vectors binned
+        this.buffers.statesBinned = d.createBuffer({
+            size: N * stateDim * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+
+        // State force output (stateDim floats per particle)
+        this.buffers.stateForce = d.createBuffer({
+            size: N * stateDim * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
         });
 
         // Cell counts (atomic u32 per cell)
@@ -104,7 +122,7 @@ export class LeniaSimulation {
 
         // SimParams uniform
         this.buffers.simParams = d.createBuffer({
-            size: 48,
+            size: 64,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
@@ -131,6 +149,14 @@ export class LeniaSimulation {
         });
         this.buffers.positionsReadback = d.createBuffer({
             size: N * 8,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        });
+        this.buffers.stateForceReadback = d.createBuffer({
+            size: N * stateDim * 4,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        });
+        this.buffers.statesReadback = d.createBuffer({
+            size: N * stateDim * 4,
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
         });
     }
@@ -192,6 +218,8 @@ export class LeniaSimulation {
                 { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
                 { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
                 { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                { binding: 7, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
             ],
         });
         this.pipelines.applyPerm = d.createComputePipeline({
@@ -210,6 +238,8 @@ export class LeniaSimulation {
                 { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
                 { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
                 { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                { binding: 7, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                { binding: 8, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
             ],
         });
         this.pipelines.forward = d.createComputePipeline({
@@ -224,6 +254,8 @@ export class LeniaSimulation {
                 { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
                 { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
                 { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
             ],
         });
         this.pipelines.updatePos = d.createComputePipeline({
@@ -275,6 +307,8 @@ export class LeniaSimulation {
                 { binding: 3, resource: { buffer: b.positionsBinned } },
                 { binding: 4, resource: { buffer: b.typesBinned } },
                 { binding: 5, resource: { buffer: b.simParams } },
+                { binding: 6, resource: { buffer: b.states } },
+                { binding: 7, resource: { buffer: b.statesBinned } },
             ],
         });
 
@@ -288,6 +322,8 @@ export class LeniaSimulation {
                 { binding: 4, resource: { buffer: b.simParams } },
                 { binding: 5, resource: { buffer: b.scalarFields } },
                 { binding: 6, resource: { buffer: b.gradE } },
+                { binding: 7, resource: { buffer: b.statesBinned } },
+                { binding: 8, resource: { buffer: b.stateForce } },
             ],
         });
 
@@ -297,16 +333,20 @@ export class LeniaSimulation {
                 { binding: 0, resource: { buffer: b.positionsBinned } },
                 { binding: 1, resource: { buffer: b.gradE } },
                 { binding: 2, resource: { buffer: b.simParams } },
+                { binding: 3, resource: { buffer: b.statesBinned } },
+                { binding: 4, resource: { buffer: b.stateForce } },
             ],
         });
     }
 
     /**
-     * Upload initial particle positions and types.
+     * Upload initial particle positions, types, and state vectors.
+     * states: Float32Array(N * stateDim) of unit-length vectors.
      */
-    uploadParticles(positions, types) {
+    uploadParticles(positions, types, states) {
         this.device.queue.writeBuffer(this.buffers.positions, 0, positions);
         this.device.queue.writeBuffer(this.buffers.types, 0, types);
+        this.device.queue.writeBuffer(this.buffers.states, 0, states);
     }
 
     /**
@@ -329,6 +369,15 @@ export class LeniaSimulation {
      */
     updateDt(dt) {
         this.config.dt = dt;
+        this.uploadSimParams(this.config);
+    }
+
+    /**
+     * Freeze/unfreeze the state vectors (frozen states still weight
+     * interactions, they just stop evolving).
+     */
+    setFreezeStates(frozen) {
+        this.config.freezeStates = frozen ? 1 : 0;
         this.uploadSimParams(this.config);
     }
 
@@ -397,6 +446,12 @@ export class LeniaSimulation {
             this.buffers.types, 0,
             N * 4
         );
+        // Copy statesBinned -> states
+        encoder.copyBufferToBuffer(
+            this.buffers.statesBinned, 0,
+            this.buffers.states, 0,
+            N * this.config.stateDim * 4
+        );
 
         this.stepCount++;
     }
@@ -413,11 +468,14 @@ export class LeniaSimulation {
     }
 
     /**
-     * Read back scalar fields and grad_E for testing.
-     * Returns: { scalarFields: Float32Array(N*4), gradE: Float32Array(N*2) }
+     * Read back scalar fields, grad_E, state force, and states for testing.
+     * Returns: { scalarFields: Float32Array(N*4), gradE: Float32Array(N*2),
+     *            positions: Float32Array(N*2), stateForce: Float32Array(N*D),
+     *            states: Float32Array(N*D) }
      */
     async readBack() {
         const N = this.config.N;
+        const D = this.config.stateDim;
         const encoder = this.device.createCommandEncoder();
         encoder.copyBufferToBuffer(this.buffers.scalarFields, 0,
                                    this.buffers.scalarFieldsReadback, 0, N * 16);
@@ -425,11 +483,17 @@ export class LeniaSimulation {
                                    this.buffers.gradEReadback, 0, N * 8);
         encoder.copyBufferToBuffer(this.buffers.positionsBinned, 0,
                                    this.buffers.positionsReadback, 0, N * 8);
+        encoder.copyBufferToBuffer(this.buffers.stateForce, 0,
+                                   this.buffers.stateForceReadback, 0, N * D * 4);
+        encoder.copyBufferToBuffer(this.buffers.statesBinned, 0,
+                                   this.buffers.statesReadback, 0, N * D * 4);
         this.device.queue.submit([encoder.finish()]);
 
         await this.buffers.scalarFieldsReadback.mapAsync(GPUMapMode.READ);
         await this.buffers.gradEReadback.mapAsync(GPUMapMode.READ);
         await this.buffers.positionsReadback.mapAsync(GPUMapMode.READ);
+        await this.buffers.stateForceReadback.mapAsync(GPUMapMode.READ);
+        await this.buffers.statesReadback.mapAsync(GPUMapMode.READ);
 
         const scalarFields = new Float32Array(
             this.buffers.scalarFieldsReadback.getMappedRange().slice(0)
@@ -440,20 +504,30 @@ export class LeniaSimulation {
         const positions = new Float32Array(
             this.buffers.positionsReadback.getMappedRange().slice(0)
         );
+        const stateForce = new Float32Array(
+            this.buffers.stateForceReadback.getMappedRange().slice(0)
+        );
+        const states = new Float32Array(
+            this.buffers.statesReadback.getMappedRange().slice(0)
+        );
 
         this.buffers.scalarFieldsReadback.unmap();
         this.buffers.gradEReadback.unmap();
         this.buffers.positionsReadback.unmap();
+        this.buffers.stateForceReadback.unmap();
+        this.buffers.statesReadback.unmap();
 
-        return { scalarFields, gradE, positions };
+        return { scalarFields, gradE, positions, stateForce, states };
     }
 
     /**
-     * Read back current particle positions/types in unbinned order.
-     * Returns: { positions: Float32Array(N*2), types: Uint32Array(N) }
+     * Read back current particle positions/types/states in unbinned order.
+     * Returns: { positions: Float32Array(N*2), types: Uint32Array(N),
+     *            states: Float32Array(N*D) }
      */
     async readParticleState() {
         const N = this.config.N;
+        const D = this.config.stateDim;
 
         const positionsReadback = this.device.createBuffer({
             size: N * 8,
@@ -463,24 +537,33 @@ export class LeniaSimulation {
             size: N * 4,
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
         });
+        const statesReadback = this.device.createBuffer({
+            size: N * D * 4,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+        });
 
         const encoder = this.device.createCommandEncoder();
         encoder.copyBufferToBuffer(this.buffers.positions, 0, positionsReadback, 0, N * 8);
         encoder.copyBufferToBuffer(this.buffers.types, 0, typesReadback, 0, N * 4);
+        encoder.copyBufferToBuffer(this.buffers.states, 0, statesReadback, 0, N * D * 4);
         this.device.queue.submit([encoder.finish()]);
 
         await positionsReadback.mapAsync(GPUMapMode.READ);
         await typesReadback.mapAsync(GPUMapMode.READ);
+        await statesReadback.mapAsync(GPUMapMode.READ);
 
         const positions = new Float32Array(positionsReadback.getMappedRange().slice(0));
         const types = new Uint32Array(typesReadback.getMappedRange().slice(0));
+        const states = new Float32Array(statesReadback.getMappedRange().slice(0));
 
         positionsReadback.unmap();
         typesReadback.unmap();
+        statesReadback.unmap();
         positionsReadback.destroy();
         typesReadback.destroy();
+        statesReadback.destroy();
 
-        return { positions, types };
+        return { positions, types, states };
     }
 
     /**

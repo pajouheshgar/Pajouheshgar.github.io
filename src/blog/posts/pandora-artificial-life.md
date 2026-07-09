@@ -1,9 +1,9 @@
 ---
 layout: layouts/post.njk
-title: "Pandora: Scaling Particle Lenia to Millions of Particles"
+title: "Pandora: Stateful Particle Lenia"
 date: 2026-04-10
 tags: ["artificial-life", "particle-lenia", "webgpu", "simulation"]
-description: "Pandora is a WebGPU-accelerated Particle Lenia simulator that scales to millions of particles and supports multiple interacting species — and a first attempt to ask whether artificial life can show qualitatively new behavior at larger scales."
+description: "Pandora extends Particle Lenia with a per-particle state vector that modulates every interaction — increasing the variety of patterns and behaviors the system can produce — while scaling to millions of particles with multiple interacting species."
 references:
   - authors: "Bert Wang-Chak Chan"
     title: "Lenia: Biology of Artificial Life"
@@ -25,6 +25,8 @@ references:
     url: "https://www.youtube.com/watch?v=xP5-iIeKXE8"
 ---
 
+*Updated July 2026: Pandora's particles now carry a dynamic state vector $\mathbf{s}$ that modulates all of their interactions — the model described below is this stateful version.*
+
 <div class="demo-embed">
   <iframe src="/demos/pandora/" title="Pandora — interactive Particle Lenia simulation" allowfullscreen></iframe>
   <p class="demo-caption">
@@ -32,6 +34,8 @@ references:
     <a href="/demos/pandora/" target="_blank" rel="noopener">Open full screen ↗</a>
   </p>
 </div>
+
+**Reading the visualization:** each particle's *color* shows the first three channels of its state vector $\mathbf{s}$ (mapped from $[-1,1]$ to RGB), so color changes as a particle's state evolves. Its *shape* shows its species: circles for species 0, then triangles, squares, pentagons, and so on. The **State dim (D)** slider sets the dimensionality of $\mathbf{s}$ (changing it resets the simulation). The camera slowly tours the world on its own; it pauses as soon as you click, drag, scroll, or press a key, and resumes after a moment of idleness — the **Auto Camera** button in the controls turns it off entirely.
 
 ## Introduction
 
@@ -45,7 +49,7 @@ The canonical starting point is **Conway's Game of Life** (1970). A 2D grid of b
 
 [^lagr]: In fluid mechanics and field theories, the *Eulerian* view tracks a fixed point in space and asks what passes through it; the *Lagrangian* view follows individual parcels as they move. Grid-based systems like Lenia are naturally Eulerian — spatial location is the index. Particle systems are Lagrangian — each particle carries a persistent identity, so attaching per-particle properties (species, orientation, memory) is trivial.
 
-Pandora is our implementation of Particle Lenia extended along two axes: **multiple interacting species** and **massive scale** (up to millions of particles). The source code — including a WebGPU implementation (what runs in the demo above) and a CUDA + PyTorch implementation for research use — is available at [github.com/TheDevilWillBeBee/Pandora](https://github.com/TheDevilWillBeBee/Pandora).
+Pandora is our implementation of Particle Lenia extended along three axes: a **per-particle state vector** that modulates every interaction, **multiple interacting species**, and **massive scale** (up to millions of particles). The source code — including a WebGPU implementation (what runs in the demo above) and a CUDA + PyTorch implementation for research use — is available at [github.com/TheDevilWillBeBee/Pandora](https://github.com/TheDevilWillBeBee/Pandora).
 
 ## Motivation: Multiple Species
 
@@ -58,6 +62,14 @@ Particle Lenia offers a more natural solution. Because each particle has a persi
 This is much harder to achieve in a grid-based (Eulerian) system, because a grid cell has no persistent identity: what it "is" changes every timestep as new values flow through it.[^euler_lagr]
 
 [^euler_lagr]: This distinction matters for a subtle reason in the math. In single-species Particle Lenia, the U-field is ambiguous — it can be read as either the field that a particle *creates* around itself, or as the particle's *sensitivity* to nearby density. Both interpretations give identical dynamics when there is only one species. In a multi-species system, we must be explicit: **U is the field a particle creates around itself**. A particle of species A creates a field shaped by A's kernel parameters; a particle of species B senses that field with B's own growth function.
+
+## Motivation: A State for Every Particle
+
+Species take the Lagrangian idea one step, but they are *static*: a particle is born a member of species 3 and stays that way forever. Everything else about how two particles interact is determined by their distance alone. Real cells are not like this — two cells of the same type can behave very differently depending on their internal chemical state, and that state itself changes in response to the neighborhood.
+
+Pandora's stateful model pushes the same Lagrangian logic further: alongside its position and species, each particle carries a **state vector** $\mathbf{s}_i$ — a $D$-dimensional unit vector that evolves continuously over time. The state acts as a *soft, dynamic identity*: how strongly particle $j$ affects particle $i$ depends on how aligned their states are. Particles with similar states see each other at full strength; particles with orthogonal or opposing states are mutually invisible, even when they sit right next to each other.
+
+The purpose of adding state is to **increase the variety and number of patterns and behaviors that can arise in the system**. In stateless Particle Lenia, two particles at the same distance always interact identically, which bounds how much structure the system can express. With state, the *effective* interaction network is itself a dynamical variable: groups of particles can differentiate, couple, and decouple over time, and the same spatial configuration can support many different behaviors depending on the state configuration living on top of it. You can think of $\mathbf{s}$ as a continuous, dynamic generalization of species — instead of $M$ discrete types fixed at initialization, there is a continuum of possible identities on the unit sphere, and the dynamics decide which identities form and persist.
 
 ## Motivation: The Scaling Question
 
@@ -77,39 +89,45 @@ More fundamentally, we do not know whether emergent scaling behavior requires a 
 
 ## The Math Behind Pandora
 
-Pandora follows the Particle Lenia energy-based formulation. Here is the key structure.
+Pandora follows the energy-based formulation of Particle Lenia. Each particle $i$ carries three quantities: a position $\mathbf{x}_i \in \mathbb{R}^2$, a fixed species $t_i$ that selects its parameters, and a **state vector**
 
-**The U-field.** Each particle $i$ of species $s_i$ creates a ring-shaped scalar field around itself:
+$$\mathbf{s}_i \in \mathbb{S}^{D-1} \subset \mathbb{R}^D, \qquad \|\mathbf{s}_i\| = 1$$
 
-$$U_i(\mathbf{x}) = w_k^{(s_i)} \cdot \exp\!\left(-\left(\frac{\|\mathbf{x} - \mathbf{x}_i\| - \mu_k^{(s_i)}}{\sigma_k^{(s_i)}}\right)^{\!2}\right)$$
+a unit vector on the $D$-dimensional sphere ($D$ is the "State dim" slider in the demo). At initialization each $\mathbf{s}_i$ is drawn from an isotropic Gaussian and normalized to unit length, so the initial states are uniformly distributed over the sphere. Positions and states both evolve; the species does not.
 
-where $\mu_k$ is the ring radius, $\sigma_k$ is the ring width, and $w_k$ is a normalization weight. The field is a Gaussian bump peaked at distance $\mu_k$ from the particle — a ring, not a disk.
+**The kernel.** Each particle creates a ring-shaped scalar field around itself:
 
-**Superposition.** The total field sensed by particle $j$ is the sum over all other particles:
+$$K_i(r) = w_k^{(t_i)} \cdot \exp\!\left(-\left(\frac{r - \mu_k^{(t_i)}}{\sigma_k^{(t_i)}}\right)^{\!2}\right)$$
 
-$$U(\mathbf{x}) = \sum_{i} U_i(\mathbf{x})$$
+where $\mu_k$ is the ring radius, $\sigma_k$ is the ring width, and $w_k$ is a normalization weight — a Gaussian bump peaked at distance $\mu_k$, a ring rather than a disk.
 
-The U-field is linear and additive — contributions simply stack. This is analogous to electrostatics: each source particle contributes independently to the total field at any point.
+**The U-field.** The field particle $i$ senses is a superposition of these kernels, but each neighbor's contribution is weighted by how *aligned* the two particles' states are, passed through a ReLU:
 
-**The growth function.** Each particle does not try to maximize or minimize the field it senses. It has a preferred field value $\mu_g$ (with tolerance $\sigma_g$), and is "happy" when $U \approx \mu_g$. The growth function encodes this:
+$$U_i = K_i(0) + \sum_{j \neq i} \max\!\left(0,\; \langle \mathbf{s}_i, \mathbf{s}_j \rangle\right) K_j(r_{ij})$$
+
+Aligned particles see each other at full strength; particles with $\langle \mathbf{s}_i, \mathbf{s}_j \rangle \le 0$ are mutually invisible. The self-term $K_i(0)$ carries weight $\langle \mathbf{s}_i, \mathbf{s}_i \rangle = 1$. Setting all states equal recovers the stateless multi-species Particle Lenia — every weight becomes 1.
+
+**The growth function.** Each particle does not try to maximize or minimize the field it senses. It has a preferred field value $\mu_g$ (with tolerance $\sigma_g$), and is "happy" when $U \approx \mu_g$:
 
 $$G(u) = \exp\!\left(-\left(\frac{u - \mu_g}{\sigma_g}\right)^{\!2}\right)$$
 
 $G$ is close to 1 when $u \approx \mu_g$ and falls off symmetrically — the particle is neutral about field values very far from its optimum in either direction.
 
-**The energy and update rule.** The total energy of particle $i$ combines a repulsion term and a growth term:
+**The energy.** The total energy of particle $i$ combines a short-range repulsion term and the growth term:
 
-$$E_i = R_i - G(U(\mathbf{x}_i))$$
+$$E_i = R_i - G(U_i), \qquad R_i = \sum_{j \neq i} \frac{c_\text{rep}^{(t_j)}}{2}(1 - r_{ij})^2 \cdot \mathbf{1}[r_{ij} < 1]$$
 
-where $R_i$ is the short-range repulsion:
+The repulsion is deliberately state-*independent*, so particles never overlap regardless of their states. (Note that $c_\text{rep}^{(t_j)}$ depends on the species of the *source* particle $j$ — different species can be more or less "hard.")
 
-$$R_i = \sum_{j \neq i} \frac{c_\text{rep}^{(s_j)}}{2}(1 - r_{ij})^2 \cdot \mathbf{1}[r_{ij} < 1]$$
+**The update rule.** Everything evolves by gradient descent on this one energy — the position *and* the state:
 
-Note that $c_\text{rep}^{(s_j)}$ depends on the species of the *source* particle $j$ — different species can be more or less "hard." Particles move by gradient descent on this energy:
+$$\dot{\mathbf{x}}_i = -\nabla_{\mathbf{x}_i} E_i, \qquad \dot{\mathbf{s}}_i = -\nabla_{\mathbf{s}_i} E_i$$
 
-$$\dot{\mathbf{x}}_i = -\nabla_{\mathbf{x}_i} E_i$$
+with the state gradient taken on the sphere: the raw gradient is projected onto the tangent plane at $\mathbf{s}_i$, and $\mathbf{s}_i$ is renormalized after each Euler step. That is the entire model — one energy, two gradient flows. Because $U_i$ contains the state weights, the position gradient automatically only feels neighbors the particle is aligned with; because $R$ has no state dependence, the state gradient reduces to $G'(U_i)\, \partial U_i / \partial \mathbf{s}_i$. The stateless base model and its expanded per-neighbor gradients are derived on the [Particle Lenia project page](https://google-research.github.io/self-organising-systems/particle-lenia/).
 
-which expands into a sum of per-neighbor gradient contributions. The full derivation is given on the [Particle Lenia project page](https://google-research.github.io/self-organising-systems/particle-lenia/).
+Unpacking the state flow gives a nice intuition: $\partial U_i / \partial \mathbf{s}_i$ points toward the kernel-weighted average of the visible neighbors' states, scaled by the growth derivative $G'(U_i)$. When a particle senses less field than it prefers ($U_i < \mu_g$, so $G' > 0$), it rotates its state *toward* its neighbors' states — aligning with them increases the field it sees. When it is oversaturated ($G' < 0$), it rotates *away*, decoupling itself from the crowd. Particles therefore recruit interaction partners when lonely and shed them when overcrowded, purely as a consequence of the energy descent.
+
+This coupling is what generates the extra richness: the states and the positions co-evolve, and structures can now differ not just in their geometry but in the state configuration painted onto them. In the demo the first three channels of $\mathbf{s}_i$ are rendered as the particle's RGB color, so this differentiation is directly visible — a string or ring with a coherent color is a group of particles that have locked their states together.
 
 ## Technical Implementation: Scaling to Millions of Particles
 
@@ -159,7 +177,9 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
 }
 ```
 
-Each GPU thread handles exactly one particle. It reads particle $i$'s position and type, iterates over the neighboring cells in the Morton-indexed buffer, accumulates $U$, $G$, $R$, and $\nabla E$, and writes the result. There is no communication between threads during the forward pass — every particle's gradient is independent.
+Each GPU thread handles exactly one particle. It reads particle $i$'s position, type, and state vector, iterates over the neighboring cells in the Morton-indexed buffer, accumulates $U$, $G$, $R$, $\nabla E$, and the state force, and writes the result. There is no communication between threads during the forward pass — every particle's gradient is independent.
+
+The state vectors add $D$ floats per particle that ride along through the whole pipeline: they are reordered together with positions and types in the binning scatter, the forward kernel computes the $D$-dimensional dot product $\langle \mathbf{s}_i, \mathbf{s}_j \rangle$ inside the same neighbor loop that evaluates the kernel, and the position-update pass integrates and renormalizes the states in place. The neighbor scan is unchanged — state weighting reads each neighbor's state exactly once — so the stateful model keeps the same $O(N)$ scaling.
 
 This design scales straightforwardly to millions of particles: more particles means more threads, and modern GPUs have thousands of cores that can absorb them.
 
@@ -169,9 +189,9 @@ The demo above runs the WebGPU (WGSL) backend entirely in the browser — no ser
 
 ## What's Next
 
-Almost all the most interesting artificial life systems — Game of Life, Lenia, Particle Lenia — are **isotropic**: their rules are invariant under rotation. A particle does not know which direction it is "pointing"; it only knows the magnitude of interactions at each distance.
+Almost all the most interesting artificial life systems — Game of Life, Lenia, Particle Lenia — are **isotropic**: their rules are invariant under rotation. The state vector $\mathbf{s}$ breaks the symmetry between *particles*, but the interactions are still isotropic in *space*: a particle does not know which direction it is "pointing"; it only knows the magnitude of interactions at each distance.
 
-The next planned extension for Pandora is to go beyond isotropy by giving each particle an **orientation** $\theta_i$. This changes the field kernel from a radially symmetric ring to an anisotropic shape, and adds a new differential equation for how $\theta_i$ evolves — coupling the particle's heading to the fields it creates and senses. This is a small structural change but opens a qualitatively different regime of possible behaviors.
+The next planned extension for Pandora is to go beyond spatial isotropy by giving each particle an **orientation** $\theta_i$. This changes the field kernel from a radially symmetric ring to an anisotropic shape, and adds a new differential equation for how $\theta_i$ evolves — coupling the particle's heading to the fields it creates and senses. This is a small structural change but opens a qualitatively different regime of possible behaviors.
 
 ---
 

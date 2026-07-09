@@ -2,6 +2,11 @@
    BLOG POST LAYOUT
    ============================================================ */
 
+/* Blog posts get a wider container than the rest of the site */
+.post-container {
+  max-width: 1200px;
+}
+
 .post-layout {
   display: grid;
   grid-template-columns: 1fr 200px;
@@ -318,7 +323,7 @@ a.ref-title:hover { text-decoration: underline; }
 .demo-embed iframe {
   display: block;
   width: 100%;
-  height: 520px;
+  height: 640px;
   border: none;
 }
 .demo-caption {

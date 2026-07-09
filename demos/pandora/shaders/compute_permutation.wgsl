@@ -14,6 +14,8 @@ struct SimParams {
     inv_eps: f32,
     R_max_sq: f32,
     dt: f32,
+    state_dim: u32,
+    freeze_states: u32,
 };
 
 @group(0) @binding(0) var<storage, read> positions: array<vec2f>;

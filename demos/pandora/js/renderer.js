@@ -1,8 +1,8 @@
 /**
  * WebGPU renderer for particle visualization.
+ * Particle color visualizes the first 3 channels of the state vector;
+ * the species type selects the sprite shape (circle, triangle, square, ...).
  */
-
-import { PALETTE } from './species.js';
 
 export class LeniaRenderer {
     constructor() {
@@ -21,6 +21,7 @@ export class LeniaRenderer {
         this.device = device;
         this.N = config.N;
         this.boxSize = config.boxSize;
+        this.stateDim = config.stateDim;
 
         // Configure canvas context
         this.context = canvas.getContext('webgpu');
@@ -40,20 +41,6 @@ export class LeniaRenderer {
             size: 32, // 8 floats
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
-
-        // Palette buffer
-        const paletteData = new Float32Array(PALETTE.length * 4);
-        for (let i = 0; i < PALETTE.length; i++) {
-            paletteData[i * 4 + 0] = PALETTE[i][0];
-            paletteData[i * 4 + 1] = PALETTE[i][1];
-            paletteData[i * 4 + 2] = PALETTE[i][2];
-            paletteData[i * 4 + 3] = 1.0;
-        }
-        this.paletteBuffer = device.createBuffer({
-            size: paletteData.byteLength,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(this.paletteBuffer, 0, paletteData);
 
         // Bind group layout
         const bgl = device.createBindGroupLayout({
@@ -76,15 +63,16 @@ export class LeniaRenderer {
                 entryPoint: 'fs_main',
                 targets: [{
                     format: this.format,
+                    // Premultiplied "over" blending: opaque sprites with AA edges
                     blend: {
                         color: {
-                            srcFactor: 'src-alpha',
-                            dstFactor: 'one',
+                            srcFactor: 'one',
+                            dstFactor: 'one-minus-src-alpha',
                             operation: 'add',
                         },
                         alpha: {
                             srcFactor: 'one',
-                            dstFactor: 'one',
+                            dstFactor: 'one-minus-src-alpha',
                             operation: 'add',
                         },
                     },
@@ -128,7 +116,7 @@ export class LeniaRenderer {
                 { binding: 0, resource: { buffer: simBuffers.positionsBinned } },
                 { binding: 1, resource: { buffer: simBuffers.typesBinned } },
                 { binding: 2, resource: { buffer: this.renderParamsBuffer } },
-                { binding: 3, resource: { buffer: this.paletteBuffer } },
+                { binding: 3, resource: { buffer: simBuffers.statesBinned } },
             ],
         });
     }
@@ -141,7 +129,8 @@ export class LeniaRenderer {
             aspect,
             this.pointSize,
             this.boxSize,
-            0, 0, // padding
+            this.stateDim,
+            0, // padding
         ]);
         this.device.queue.writeBuffer(this.renderParamsBuffer, 0, data);
     }
@@ -172,6 +161,5 @@ export class LeniaRenderer {
 
     destroy() {
         this.renderParamsBuffer?.destroy();
-        this.paletteBuffer?.destroy();
     }
 }

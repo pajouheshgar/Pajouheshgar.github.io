@@ -19,11 +19,13 @@
  *   inv_eps: f32,       // offset 36
  *   R_max_sq: f32,      // offset 40
  *   dt: f32,            // offset 44
+ *   state_dim: u32,     // offset 48
+ *   freeze_states: u32, // offset 52
  * };
- * Total: 48 bytes (12 x 4)
+ * Struct is 56 bytes; buffer padded to 64.
  */
 export function packSimParams(config) {
-    const buf = new ArrayBuffer(48);
+    const buf = new ArrayBuffer(64);
     const u32 = new Uint32Array(buf);
     const i32 = new Int32Array(buf);
     const f32 = new Float32Array(buf);
@@ -40,6 +42,8 @@ export function packSimParams(config) {
     f32[9] = config.invEps;
     f32[10] = config.RMaxSq;
     f32[11] = config.dt;
+    u32[12] = config.stateDim;
+    u32[13] = config.freezeStates ? 1 : 0;
 
     return new Uint8Array(buf);
 }
@@ -47,7 +51,7 @@ export function packSimParams(config) {
 /**
  * Compute grid configuration from simulation parameters.
  */
-export function computeGridConfig(N, numSpecies, gridSize, boxSize, dt, rMax) {
+export function computeGridConfig(N, numSpecies, gridSize, boxSize, dt, rMax, stateDim = 3) {
     const eps = boxSize / gridSize;
     const cellRadius = Math.ceil(rMax / eps);
     const cellCount = gridSize * gridSize;
@@ -79,5 +83,6 @@ export function computeGridConfig(N, numSpecies, gridSize, boxSize, dt, rMax) {
         invEps: 1.0 / eps,
         RMaxSq: rMax * rMax,
         dt,
+        stateDim,
     };
 }

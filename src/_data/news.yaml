@@ -4,7 +4,7 @@
 
 - date: 2026-04-10
   visible: true
-  text: "New blog post: <a href='/blog/posts/pandora-artificial-life/'>Pandora — Scaling Particle Lenia to Millions of Particles</a>."
+  text: "New blog post: <a href='/blog/posts/pandora-artificial-life/'>Pandora — Stateful Particle Lenia</a>."
 
 - date: 2026-01-21
   visible: true
