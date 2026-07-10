@@ -94,8 +94,12 @@
         <button id="soup">Soup</button>
         <button id="clear">Clear</button>
     </div>
+    <div class="sect"></div>
+    <div class="row"><label>new radius</label>
+        <input type="range" id="targetR" min="1" max="32" step="1" value="10">
+        <span class="val" id="targetRv">10</span></div>
     <div class="btns">
-        <button id="lifeR" title="Set the birth/survival ranges to Game of Life rescaled to the current radius">Rescale Life to R</button>
+        <button id="lifeR" title="Rescale the current birth/survival ranges from the current radius to the new radius (ranges stay at the same fraction of the neighborhood)">Rescale rule to new radius</button>
     </div>
     <div class="btns">
         <button id="load">Load creature&hellip;</button>
@@ -179,16 +183,21 @@ $('gridN').addEventListener('change', () => { // rebuild only on release
     sim = makeLtL(glsl, N);
     reseed();
 });
-// Game of Life rescaled to radius R (Evans): counts as fractions of the
-// (2R+1)^2 box with half-open interval edges — birth [2.5,3.5)/9,
-// survival [2.5,4.5)/9 (counts include the cell itself). R=1 gives exactly
-// B[3,3] S[3,4]; R=5 lands next to Bosco's rule.
+$('targetR').addEventListener('input', () =>
+    $('targetRv').textContent = $('targetR').value);
+// Rescale the current rule from the current radius to the target radius
+// (Evans' continuum scaling): count ranges are treated as half-open
+// intervals [x1-0.5, x2+0.5) and kept at the same fraction of the (2R+1)^2
+// box. Rescaling Game of Life (R=1) to R=5 lands next to Bosco's rule, and
+// scaling back recovers B[3,3] S[3,4] exactly.
 $('lifeR').addEventListener('click', () => {
-    const A = (2*P.R + 1)**2;
-    P.b1 = Math.ceil(A * 2.5/9);
-    P.b2 = Math.ceil(A * 3.5/9) - 1;
-    P.s1 = Math.ceil(A * 2.5/9);
-    P.s2 = Math.ceil(A * 4.5/9) - 1;
+    const R2 = Math.min(+$('targetR').value, (N >> 1) - 1);
+    const A = (2*P.R + 1)**2, A2 = (2*R2 + 1)**2;
+    P.b1 = Math.ceil(A2 * (P.b1 - 0.5) / A);
+    P.b2 = Math.max(P.b1, Math.ceil(A2 * (P.b2 + 0.5) / A) - 1);
+    P.s1 = Math.ceil(A2 * (P.s1 - 0.5) / A);
+    P.s2 = Math.max(P.s1, Math.ceil(A2 * (P.s2 + 0.5) / A) - 1);
+    P.R = R2;
     syncUI();
 });
 $('pause').addEventListener('click', () => {
