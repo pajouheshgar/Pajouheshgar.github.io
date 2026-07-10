@@ -78,24 +78,35 @@ function compare(name, got, want, ctx) {
 }
 
 async function run() {
-    // 1. SAT vs JS prefix sums
+    // 1. SAT vs JS prefix sums (the GPU stores residues mod 2048 / 2047 in
+    // the two channels — see BOXSUM_GLSL in ltl-core.js)
     sim.randomize(1);
     const cur0 = toBits(sim.readAlive());
     sim.buildSAT();
-    const gpuSat = sim.sat[0].readSync().slice();
+    const gpuSat = sim.sat[0].readSync().slice();   // rg: 2 floats per texel
     const js = new Float64Array(N*N);
     for (let y = 0; y < N; ++y) for (let x = 0; x < N; ++x)
         js[y*N+x] = cur0[y*N+x]
             + (x ? js[y*N+x-1] : 0) + (y ? js[(y-1)*N+x] : 0)
             - (x && y ? js[(y-1)*N+x-1] : 0);
-    compare('summed-area table', gpuSat, js);
+    {
+        let bad = 0, first = '';
+        for (let i = 0; i < N*N; ++i)
+            if ((gpuSat[2*i] != js[i] % 2048 || gpuSat[2*i+1] != js[i] % 2047)
+                && ++bad == 1)
+                first = ` — first at (${i%N},${i/N|0}): gpu (${gpuSat[2*i]},${gpuSat[2*i+1]})` +
+                        ` js (${js[i] % 2048},${js[i] % 2047})`;
+        if (bad) ++failures;
+        say(`${bad ? 'FAIL' : 'PASS'}  summed-area table (mod residues)` +
+            (bad ? ` — ${bad} mismatching cells${first}` : ''), bad ? 'fail' : 'pass');
+    }
     await tick();
 
     // 2. GPU boxSum vs naive counts (uses the SAT built above)
     for (const R of [2, 17]) {
         const cnts = glsl({sat: sim.sat[0], radius: R, FP: BOXSUM_GLSL + `
             void fragment() {
-                FOut = vec4(boxSum(I, int(radius), ViewSize.x), 0.0, 0.0, 1.0);
+                FOut = vec4(float(boxSum(I, int(radius), ViewSize.x)), 0.0, 0.0, 1.0);
             }`}, {size: [N, N], format: 'r32f', tag: 'cnt'}).readSync().slice();
         compare('periodic box sum', cnts, naiveCounts(cur0, R), `R=${R}`);
         await tick();
