@@ -39,10 +39,33 @@ function makeLtL(glsl, N) {
     // r32f: counts up to N*N stay exact in float32
     const sat = glsl({}, {size: [N, N], format: 'r32f', story: 2, tag: 'sat' + N});
 
-    function randomize(seed) {
-        glsl({seed: seed == null ? Math.floor(Math.random() * 1e6) : seed, FP: `
-            float r = hash(ivec3(I, int(seed))).x;
-            FOut = vec4(step(0.5, r), 0.0, 0.0, 1.0);`}, state);
+    // freq == 0 (or omitted): uniform white noise. freq > 0: periodic Perlin
+    // noise with `freq` lattice cells across the grid (lower = bigger blobs),
+    // thresholded so ~density of the cells are alive.
+    function randomize(seed, density, freq) {
+        glsl({seed: seed == null ? Math.floor(Math.random() * 1e6) : seed,
+              density: density == null ? 0.5 : density, freq: freq || 0, FP: `
+            vec2 grad(ivec2 c) {
+                // wrap the lattice so the noise tiles with the periodic grid
+                ivec2 cw = ivec2(mod(vec2(c), vec2(freq)));
+                float a = hash(ivec3(cw, int(seed))).x * TAU;
+                return vec2(cos(a), sin(a));
+            }
+            float perlin(vec2 p) {
+                ivec2 i0 = ivec2(floor(p));
+                vec2 f = fract(p), u = f*f*(3.0 - 2.0*f);
+                float d00 = dot(grad(i0),              f);
+                float d10 = dot(grad(i0 + ivec2(1,0)), f - vec2(1,0));
+                float d01 = dot(grad(i0 + ivec2(0,1)), f - vec2(0,1));
+                float d11 = dot(grad(i0 + ivec2(1,1)), f - vec2(1,1));
+                return mix(mix(d00, d10, u.x), mix(d01, d11, u.x), u.y);
+            }
+            void fragment() {
+                float v = freq > 0.5
+                    ? clamp(perlin(UV * freq) / 0.7 * 0.5 + 0.5, 0.0, 1.0)
+                    : hash(ivec3(I, int(seed))).x;
+                FOut = vec4(step(1.0 - density, v), 0.0, 0.0, 1.0);
+            }`}, state);
     }
 
     function clear() {
