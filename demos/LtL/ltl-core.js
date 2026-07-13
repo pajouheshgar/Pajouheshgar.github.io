@@ -110,17 +110,22 @@ function makeLtL(glsl, N) {
                 FOut = vec4(v, 0.0, 1.0);`}, sat);
     }
 
-    // rule = {R, b1, b2, s1, s2}
+    // rule = {R, b1, b2, s1, s2, noise}; noise replaces the rule result
+    // with an unbiased random state at the specified probability.
     function step(rule) {
         buildSAT();
         glsl({sat: sat[0], radius: rule.R,
               b1: rule.b1, b2: rule.b2, s1: rule.s1, s2: rule.s2,
+              noiseProbability: rule.noise == null ? 0 : rule.noise,
+              randomSeed: Math.floor(Math.random() * 1000000000),
               FP: BOXSUM_GLSL + `
             void fragment() {
                 int cnt = boxSum(I, int(radius), ViewSize.x);
                 bool alive = Src(I).r > 0.5;
                 bool next = alive ? (cnt >= int(s1) && cnt <= int(s2))
                                   : (cnt >= int(b1) && cnt <= int(b2));
+                if (hash(ivec3(I, int(randomSeed))).x < noiseProbability)
+                    next = hash(ivec3(I, int(randomSeed) + 1)).x < 0.5;
                 float trail = next ? 1.0 : max(Src(I).g * 0.96 - 0.002, 0.0);
                 FOut = vec4(next ? 1.0 : 0.0, trail, 0.0, 1.0);
             }`}, state);
