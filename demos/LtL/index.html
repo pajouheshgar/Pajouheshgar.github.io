@@ -48,7 +48,7 @@
 <canvas id="c"></canvas>
 <div id="panel">
     <h1>Larger than Life</h1>
-    <div class="sub">summed-area-table neighbor counting, periodic boundary</div>
+    <div class="sub">SAT / FFT neighbor counting, periodic boundary</div>
 
     <div class="row"><label>preset</label>
         <select id="preset" style="flex:1">
@@ -66,6 +66,10 @@
     <div class="row"><label>radius R</label>
         <input type="range" id="R" min="1" max="512" step="1" value="5">
         <input type="number" class="val" id="Rv" min="1" value="5"></div>
+    <div class="row"><label>circle</label>
+        <input type="checkbox" id="circle" style="margin:0; accent-color:#5b9dd9"
+               title="Count cells with dx&sup2;+dy&sup2; &le; R&sup2; (FFT convolution) instead of the (2R+1)&sup2; box">
+        <span style="flex:1; color:#7f8ea3; font-size:10.5px">disk neighborhood (FFT)</span></div>
     <div class="row"><label>birth b1</label>
         <input type="range" id="b1" min="0" max="121" step="1" value="34">
         <input type="number" class="val" id="b1v" min="0" value="34"><span class="ratio" id="b1r"></span></div>
@@ -100,8 +104,8 @@
         </select>
     </div>
     <div class="row"><label>frequency</label>
-        <input type="range" id="noiseFreq" min="1" max="64" step="1" value="8">
-        <span class="val" id="noiseFreqv">8</span></div>
+        <input type="range" id="noiseFreq" min="1" max="64" step="1" value="50">
+        <span class="val" id="noiseFreqv">50</span></div>
     <div class="row"><label>step</label>
         <span class="val" id="stepc" style="flex:1; text-align:left">0</span></div>
     <div class="btns">
@@ -120,11 +124,17 @@
         <button id="load">Load creature&hellip;</button>
     </div>
     <input type="file" id="file" accept=".json,application/json" style="display:none">
-    <div id="hint">Neighbor count is over the (2R+1)&sup2; box and includes the
-        cell itself (Evans' convention). Drag: left = draw, right = erase.
-        Shift+drag: select a region and save it as a creature file (zero
+    <div id="hint">Neighbor count is over the (2R+1)&sup2; box — or, with
+        circle checked, over cells with dx&sup2;+dy&sup2; &le; R&sup2; (counted
+        by FFT convolution; R may be half-integer, Game of Life = R 1.5) —
+        and includes the cell itself (Evans' convention). Toggling circle
+        switches an unmodified preset to its disk equivalent and rescales a
+        custom rule to the new neighborhood area.
+        Drag: left = draw, right = erase.
+        Ctrl+drag: select a region and save it as a creature file (zero
         borders trimmed). After loading: click to paste, Esc / right-click to
-        stop.</div>
+        stop. Wheel: zoom. Shift+drag or middle-drag: pan.
+        G: toggle grid lines.</div>
 </div>
 <script>
 'use strict';
@@ -142,17 +152,46 @@ let stepCount = 0, stepAcc = 0;   // stepAcc carries fractional steps/frame
 // noise is the chance that a rule result is replaced by a random 0 or 1;
 // noiseFreq is the perlin lattice size across the grid (lower = bigger blobs)
 const P = {R: 5, b1: 34, b2: 45, s1: 34, s2: 58, speed: 0, brush: 12,
-           density: 0.5, noise: 0, noiseFreq: 8};
+           density: 0.5, noise: 0, noiseFreq: 50};
 const PRESETS = {
     bosco:     {R: 5,  b1: 34,  b2: 45,  s1: 34,  s2: 58},
     life:      {R: 1,  b1: 3,   b2: 3,   s1: 3,   s2: 4},
     bugsmovie: {R: 10, b1: 123, b2: 170, s1: 123, s2: 212},
     majority:  {R: 4,  b1: 41,  b2: 81,  s1: 41,  s2: 81},
 };
+// hand-tuned circle-mode equivalents; presets without an entry fall back to
+// the automatic area rescale in presetRule. Disk Game of Life is exact:
+// the R=1.5 disk is the 3x3 Moore box.
+const CIRCLE_PRESETS = {
+    bosco: {R: 6.5, b1: 38, b2: 49, s1: 38, s2: 64},
+    life:  {R: 1.5, b1: 3,  b2: 3,  s1: 3,  s2: 4},
+};
 let paused = false;
+// circle mode: neighborhood = cells with dx^2+dy^2 <= R^2, counted by FFT
+// convolution in ltl-core.js; R may be half-integer (Game of Life = R 1.5)
+let circleMode = false;
+const areaOf = R => circleMode ? diskArea(R) : (2*R + 1)**2;
+// Evans' continuum scaling between neighborhood areas: count ranges are
+// treated as half-open intervals [x1-0.5, x2+0.5) and kept at the same
+// fraction of the neighborhood.
+function rescaleRule(r, A, A2) {
+    r.b1 = Math.max(0, Math.ceil(A2 * (r.b1 - 0.5) / A));
+    r.b2 = Math.max(r.b1, Math.ceil(A2 * (r.b2 + 0.5) / A) - 1);
+    r.s1 = Math.max(0, Math.ceil(A2 * (r.s1 - 0.5) / A));
+    r.s2 = Math.max(r.s1, Math.ceil(A2 * (r.s2 + 0.5) / A) - 1);
+}
+// the rule a preset stands for under the given mode
+function presetRule(name, circle) {
+    if (!circle) return PRESETS[name];
+    if (CIRCLE_PRESETS[name]) return CIRCLE_PRESETS[name];
+    const p = {...PRESETS[name]};
+    const A = (2*p.R + 1)**2;
+    rescaleRule(p, A, diskArea(p.R));
+    return p;
+}
 
 function syncUI() {
-    const maxCount = (2*P.R + 1)**2;
+    const maxCount = areaOf(P.R);
     for (const k of ['b1','b2','s1','s2']) {
         $(k).max = maxCount;
         $(k+'v').max = maxCount;
@@ -169,7 +208,8 @@ function syncUI() {
     $('speedv').textContent =
         P.speed < 0 ? '1/' + (1 << -P.speed) : String(1 << P.speed);
     $('rule').textContent =
-        `R${P.R} / B [${P.b1}, ${P.b2}] / S [${P.s1}, ${P.s2}]`;
+        `R${P.R}${circleMode ? ' disk' : ''} / B [${P.b1}, ${P.b2}] / S [${P.s1}, ${P.s2}]`;
+    $('circle').checked = circleMode;
 }
 function applyParam(k, val) {
     P[k] = val;
@@ -184,8 +224,9 @@ for (const k in P) $(k).addEventListener('input', () => applyParam(k, +$(k).valu
 for (const k of ['R','b1','b2','s1','s2'])      // commit typed values on Enter/blur
     $(k+'v').addEventListener('change', () => {
         const lo = k == 'R' ? 1 : 0;
-        const hi = k == 'R' ? Math.min(512, (N >> 1) - 1) : (2*P.R + 1)**2;
-        const v = Math.round(+$(k+'v').value);
+        const hi = k == 'R' ? Math.min(512, (N >> 1) - 1) : areaOf(P.R);
+        const raw = +$(k+'v').value;                 // circle R: half-integers
+        const v = k == 'R' && circleMode ? Math.round(raw*2)/2 : Math.round(raw);
         applyParam(k, Math.max(lo, Math.min(hi, isNaN(v) ? P[k] : v)));
         $(k+'v').value = P[k];
     });
@@ -195,8 +236,25 @@ $('noisev').addEventListener('change', () => {
     $('noisev').value = P.noise;
 });
 $('preset').addEventListener('change', () => {
-    Object.assign(P, PRESETS[$('preset').value]);
+    Object.assign(P, presetRule($('preset').value, circleMode));
     syncUI(); reseed();
+});
+$('circle').addEventListener('change', () => {
+    // an unmodified preset switches to its equivalent under the new mode;
+    // a custom rule is rescaled to the new neighborhood area
+    const before = presetRule($('preset').value, circleMode);
+    const wasPreset = ['R','b1','b2','s1','s2'].every(k => P[k] == before[k]);
+    const A = areaOf(P.R);                    // area under the old mode
+    circleMode = $('circle').checked;
+    $('R').step = $('Rv').step = circleMode ? 0.5 : 1;
+    if (wasPreset) {
+        Object.assign(P, presetRule($('preset').value, circleMode));
+    } else {
+        if (circleMode) { if (P.R == 1) P.R = 1.5; }
+        else P.R = P.R == 1.5 ? 1 : Math.round(P.R);
+        rescaleRule(P, A, areaOf(P.R));       // keep the rule's fractions
+    }
+    syncUI();
 });
 $('gridN').addEventListener('input', () =>    // live label while dragging
     $('gridNv').textContent = 1 << +$('gridN').value);
@@ -206,22 +264,17 @@ $('gridN').addEventListener('change', () => { // rebuild only on release
     P.R = Math.min(P.R, (N >> 1) - 1);
     syncUI();
     sim = makeLtL(glsl, N);
+    clampView();               // the zoom-in cap depends on the grid size
     reseed();
 });
 $('targetR').addEventListener('input', () =>
     $('targetRv').textContent = $('targetR').value);
 // Rescale the current rule from the current radius to the target radius
-// (Evans' continuum scaling): count ranges are treated as half-open
-// intervals [x1-0.5, x2+0.5) and kept at the same fraction of the (2R+1)^2
-// box. Rescaling Game of Life (R=1) to R=5 lands next to Bosco's rule, and
-// scaling back recovers B[3,3] S[3,4] exactly.
+// (see rescaleRule). Rescaling Game of Life (R=1) to R=5 lands next to
+// Bosco's rule, and scaling back recovers B[3,3] S[3,4] exactly.
 $('lifeR').addEventListener('click', () => {
     const R2 = Math.min(+$('targetR').value, (N >> 1) - 1);
-    const A = (2*P.R + 1)**2, A2 = (2*R2 + 1)**2;
-    P.b1 = Math.ceil(A2 * (P.b1 - 0.5) / A);
-    P.b2 = Math.max(P.b1, Math.ceil(A2 * (P.b2 + 0.5) / A) - 1);
-    P.s1 = Math.ceil(A2 * (P.s1 - 0.5) / A);
-    P.s2 = Math.max(P.s1, Math.ceil(A2 * (P.s2 + 0.5) / A) - 1);
+    rescaleRule(P, areaOf(P.R), areaOf(R2));
     P.R = R2;
     syncUI();
 });
@@ -234,16 +287,28 @@ $('clear').addEventListener('click', () => { sim.clear(); stepCount = 0; });
 syncUI();
 
 function reseed() {
+    // scale the perlin lattice with the rule radius so a given frequency
+    // makes the same pattern relative to the neighborhood at any R
+    // (calibrated to keep the old look at R=5 on a 512 grid); the lattice
+    // must stay an integer >= 1 for the noise to tile periodically
+    const freq = Math.max(1, Math.min(N >> 2,
+        Math.round(P.noiseFreq * (N / 512) * (5 / P.R))));
     sim.randomize(null, P.density,
-        $('soupType').value == 'perlin' ? P.noiseFreq : 0);
+        $('soupType').value == 'perlin' ? freq : 0);
     stepCount = 0;
 }
 $('density').addEventListener('input', reseed);   // re-soup live while dragging
 $('noiseFreq').addEventListener('input', reseed);
 $('soupType').addEventListener('change', reseed);
-// query params for sharing/testing: ?soup=perlin&freq=6&density=0.4&pause=1
+// query params for sharing/testing:
+// ?soup=perlin&freq=6&density=0.4&pause=1&circle=1
 {
     const q = new URLSearchParams(location.search);
+    if (q.has('circle')) {
+        circleMode = true;
+        $('R').step = $('Rv').step = 0.5;
+        Object.assign(P, presetRule($('preset').value, true));
+    }
     if (q.has('soup')) $('soupType').value = q.get('soup');
     if (q.has('freq')) P.noiseFreq = +q.get('freq');
     if (q.has('density')) P.density = +q.get('density');
@@ -252,16 +317,47 @@ $('soupType').addEventListener('change', reseed);
 }
 reseed();
 
-// ---- pointer state: draw / erase / shift+drag selection / paste ----
+// ---- viewport: wheel zoom (about the cursor) + shift/middle drag pan ----
+// zoom 1 = the whole grid fits the canvas (the old fixed view); viewC is the
+// grid-uv point at the canvas center
+const view = {zoom: 1, cx: 0.5, cy: 0.5};
+let showGrid = false;                   // 'G' toggles cell grid lines
+const maxZoom = () =>                   // zoom-in cap: ~32 screen px per cell
+    Math.max(1, 32 * N / Math.min(canvas.clientWidth, canvas.clientHeight));
+function clampView() {
+    view.zoom = Math.max(1, Math.min(view.zoom, maxZoom()));
+    const half = 0.5 / view.zoom;       // visible half-extent (short axis)
+    view.cx = Math.max(half, Math.min(1 - half, view.cx));
+    view.cy = Math.max(half, Math.min(1 - half, view.cy));
+}
+// clip-space transform shared by every screen-space (Aspect:'fit') draw
+const viewUni = () => ({viewC: [view.cx, view.cy], viewZoom: view.zoom});
+const VIEW_VP = 'vec4(((org - viewC)*2.0 + XY*ext)*viewZoom, 0.0, 1.0)';
+canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    setPointer(e);
+    const [pu, pv] = [pointer.u, pointer.v];   // grid point under the cursor
+    const z2 = Math.max(1, Math.min(maxZoom(),
+        view.zoom * Math.exp(-e.deltaY * 0.0015)));
+    view.cx = pu - (pu - view.cx) * view.zoom / z2;   // keep it under the cursor
+    view.cy = pv - (pv - view.cy) * view.zoom / z2;
+    view.zoom = z2;
+    clampView();
+}, {passive: false});
+
+// ---- pointer state: draw / erase / ctrl+drag selection / pan / paste ----
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 const pointer = {u: -1, v: -1, buttons: 0};
 let selecting = false, selA = null, selB = null;   // selection corners (grid uv)
+let panning = false, panLast = null;               // pan anchor (screen px)
 let creature = null, pasting = false, creatureSeq = 0;
 
 const setPointer = e => {
     const w = canvas.clientWidth, h = canvas.clientHeight, m = Math.min(w, h);
-    pointer.u = (e.offsetX - w/2) / m + 0.5;          // grid uv under Aspect:'fit'
-    pointer.v = (h/2 - e.offsetY) / m + 0.5;
+    // invert the view transform: screen px -> fitted clip -> grid uv
+    const cx = (e.offsetX - w/2) / (m/2), cy = (h/2 - e.offsetY) / (m/2);
+    pointer.u = cx / (2 * view.zoom) + view.cx;
+    pointer.v = cy / (2 * view.zoom) + view.cy;
     pointer.buttons = e.buttons;
 };
 const inGrid = () => pointer.u >= 0 && pointer.u <= 1 && pointer.v >= 0 && pointer.v <= 1;
@@ -269,7 +365,11 @@ const inGrid = () => pointer.u >= 0 && pointer.u <= 1 && pointer.v >= 0 && point
 canvas.addEventListener('pointerdown', e => {
     canvas.setPointerCapture(e.pointerId);
     setPointer(e);
-    if (e.shiftKey && (e.buttons & 1)) {
+    if ((e.buttons & 4) || (e.shiftKey && (e.buttons & 1))) {
+        e.preventDefault();             // middle button: suppress autoscroll
+        panning = true;
+        panLast = [e.offsetX, e.offsetY];
+    } else if (e.ctrlKey && (e.buttons & 1)) {
         selecting = true;
         selA = [pointer.u, pointer.v];
         selB = [pointer.u, pointer.v];
@@ -279,11 +379,19 @@ canvas.addEventListener('pointerdown', e => {
     }
 });
 canvas.addEventListener('pointermove', e => {
+    if (panning) {
+        const m = Math.min(canvas.clientWidth, canvas.clientHeight);
+        view.cx -= (e.offsetX - panLast[0]) / (m * view.zoom);
+        view.cy += (e.offsetY - panLast[1]) / (m * view.zoom);
+        panLast = [e.offsetX, e.offsetY];
+        clampView();
+    }
     setPointer(e);
     if (selecting) selB = [pointer.u, pointer.v];
 });
 canvas.addEventListener('pointerup', e => {
     setPointer(e);
+    if (!(e.buttons & 5)) panning = false;   // neither left nor middle held
     if (selecting) {
         selecting = false;
         saveSelection();
@@ -291,20 +399,28 @@ canvas.addEventListener('pointerup', e => {
     }
 });
 canvas.addEventListener('pointerout', () => { pointer.buttons = 0; pointer.u = -1; });
-window.addEventListener('keydown', e => { if (e.key == 'Escape') stopPasting(); });
+window.addEventListener('keydown', e => {
+    if (e.key == 'Escape') stopPasting();
+    if ((e.key == 'g' || e.key == 'G') && !e.ctrlKey &&
+        !/INPUT|SELECT/.test(e.target.tagName)) showGrid = !showGrid;
+});
 
 function applyBrush() {
-    if (selecting || pasting) return;
+    if (selecting || pasting || panning) return;
     const {u, v, buttons} = pointer;
     if (!buttons || !inGrid()) return;
-    const common = {brushUV: [u, v], ext: 2*P.brush/N, Grid: [1], VP:
-        'vec4(brushUV*2.0 - 1.0 + XY*ext, 0.0, 1.0)'};
+    // stamp cells whose center lies within brush-0.5 of the center of the
+    // cell under the cursor, so brush 1 affects exactly that one cell
+    const cc = [Math.floor(u*N) + 0.5, Math.floor(v*N) + 0.5];
+    const common = {centerCell: cc, rad: P.brush - 0.5,
+        org: [cc[0]/N, cc[1]/N], ext: 2*(P.brush + 1)/N, Grid: [1],
+        VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)'};
     if (buttons & 1)        // draw: max blend stamps 1s inside the disc
         glsl({...common, Blend: 'max(s,d)',
-              FP: 'vec4(step(length(XY), 1.0))'}, sim.state[0]);
+              FP: 'vec4(step(length(vec2(I) + 0.5 - centerCell), rad))'}, sim.state[0]);
     else if (buttons & 2)   // erase: min blend stamps 0s inside the disc
         glsl({...common, Blend: 'min(s,d)',
-              FP: 'vec4(1.0 - step(length(XY), 1.0))'}, sim.state[0]);
+              FP: 'vec4(1.0 - step(length(vec2(I) + 0.5 - centerCell), rad))'}, sim.state[0]);
 }
 
 // ---- creature save: trim zero borders, download JSON with the rule ----
@@ -333,7 +449,8 @@ function saveSelection() {
     }
     const json = {
         format: 'ltl-creature-v1',
-        rule: {R: P.R, b1: P.b1, b2: P.b2, s1: P.s1, s2: P.s2},
+        rule: {R: P.R, b1: P.b1, b2: P.b2, s1: P.s1, s2: P.s2,
+               circle: circleMode},
         size: [r - l + 1, t - b + 1],
         cells: rows,
     };
@@ -393,23 +510,35 @@ glsl.loop(() => {
     applyBrush();
     if (!paused) {
         stepAcc += 2 ** P.speed;
-        for (; stepAcc >= 1; --stepAcc) { sim.step(P); ++stepCount; }
+        for (; stepAcc >= 1; --stepAcc)
+            { sim.step({...P, circle: circleMode}); ++stepCount; }
     }
     if ($('stepc').textContent != stepCount) $('stepc').textContent = stepCount;
 
-    glsl({cells: sim.state[0], Aspect: 'fit', Clear: [0.01, 0.012, 0.02, 1], FP: `
+    // grid lines fade in between 3 and 8 screen px per cell, so they never
+    // swamp the view when zoomed out
+    const ppc = Math.min(canvas.clientWidth, canvas.clientHeight) * view.zoom / N;
+    const t = Math.max(0, Math.min(1, (ppc - 3) / 5));
+    const gridA = showGrid ? 0.45 * t*t*(3 - 2*t) : 0;
+    glsl({cells: sim.state[0], gridN: N, gridA, ...viewUni(),
+          Aspect: 'fit', Clear: [0.01, 0.012, 0.02, 1],
+          VP: 'vec4((XY - (viewC*2.0 - 1.0))*viewZoom, 0.0, 1.0)', FP: `
         vec2 s = cells(UV).rg;
         vec3 c = vec3(0.015, 0.02, 0.035);                  // background
         c += vec3(0.08, 0.30, 0.55) * s.g * s.g;            // trail
         c = mix(c, vec3(0.98, 0.93, 0.75), s.r);            // alive
+        vec2 gp = UV * gridN;                               // cell grid lines
+        vec2 gd = abs(fract(gp - 0.5) - 0.5) / fwidth(gp);
+        c = mix(c, vec3(0.45, 0.60, 0.85),
+                gridA * (1.0 - min(min(gd.x, gd.y), 1.0)));
         FOut = vec4(c, 1.0);`});
 
     if (selecting && selA && selB) {                        // selection rectangle
         const u0 = Math.min(selA[0], selB[0]), u1 = Math.max(selA[0], selB[0]);
         const v0 = Math.min(selA[1], selB[1]), v1 = Math.max(selA[1], selB[1]);
         glsl({org: [(u0 + u1)/2, (v0 + v1)/2], ext: [u1 - u0, v1 - v0],
-              Grid: [1], Aspect: 'fit', Blend: 'd*(1-sa)+s*sa',
-              VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+              Grid: [1], Aspect: 'fit', ...viewUni(), Blend: 'd*(1-sa)+s*sa',
+              VP: VIEW_VP, FP: `
             vec2 bw = fwidth(UV) * 2.0;
             bool edge = UV.x < bw.x || UV.x > 1.0 - bw.x
                      || UV.y < bw.y || UV.y > 1.0 - bw.y;
@@ -417,16 +546,18 @@ glsl.loop(() => {
     } else if (pasting && creature && inGrid()) {           // paste ghost
         const {org, ext} = creatureQuad(pointer.u, pointer.v);
         glsl({pat: creature.tex, org, ext, Grid: [1], Aspect: 'fit',
-              Blend: 'd*(1-sa)+s*sa',
-              VP: 'vec4(org*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+              ...viewUni(), Blend: 'd*(1-sa)+s*sa',
+              VP: VIEW_VP, FP: `
             float a = step(0.5, pat(UV).x);
             FOut = vec4(0.5, 1.0, 0.6, a*0.55 + 0.10);`});
-    } else if (inGrid()) {                                  // brush cursor ring
-        glsl({brushUV: [pointer.u, pointer.v], ext: 2*P.brush/N, Grid: [1],
-              Aspect: 'fit', Blend: 'd*(1-sa)+s*sa',
-              VP: 'vec4(brushUV*2.0 - 1.0 + XY*ext, 0.0, 1.0)', FP: `
+    } else if (!panning && inGrid()) {                      // brush cursor ring
+        const cc = [Math.floor(pointer.u*N) + 0.5, Math.floor(pointer.v*N) + 0.5];
+        glsl({org: [cc[0]/N, cc[1]/N], ext: 2*P.brush/N,
+              rr: (P.brush - 0.5)/P.brush, Grid: [1],
+              Aspect: 'fit', ...viewUni(), Blend: 'd*(1-sa)+s*sa',
+              VP: VIEW_VP, FP: `
             float r = length(XY);
-            float ring = smoothstep(0.08, 0.0, abs(r - 0.94));
+            float ring = smoothstep(0.08, 0.0, abs(r - rr));
             FOut = vec4(1.0, 1.0, 1.0, ring*0.35);`});
     }
 });

@@ -14,8 +14,9 @@
 </style>
 <h1>Larger than Life — GPU vs vanilla JS reference</h1>
 <div class="info">Grid 128&times;128, periodic boundary, counts include the
-    cell itself. The GPU pipeline (SAT scan passes + boxSum rule shader from
-    ltl-core.js) is compared against a plain double-for-loop implementation.</div>
+    cell itself. The GPU pipelines (SAT scan passes + boxSum rule shader,
+    and the FFT disk-convolution circle mode from ltl-core.js) are compared
+    against plain double-for-loop implementations.</div>
 <div id="log"></div>
 <div id="summary"></div>
 <canvas id="c" width="8" height="8" style="display:none"></canvas>
@@ -55,8 +56,24 @@ function naiveCounts(cur, R) {
     }
     return cnt;
 }
+// circle mode: counts over cells with dx^2 + dy^2 <= R^2, periodic wrap
+function naiveDiskCounts(cur, R) {
+    const offs = [], Ri = Math.floor(R);
+    for (let dy = -Ri; dy <= Ri; ++dy)
+        for (let dx = -Ri; dx <= Ri; ++dx)
+            if (dx*dx + dy*dy <= R*R) offs.push([dx, dy]);
+    const cnt = new Int32Array(N*N);
+    for (let y = 0; y < N; ++y) for (let x = 0; x < N; ++x) {
+        let n = 0;
+        for (const [dx, dy] of offs)
+            n += cur[((y + dy + N) % N)*N + ((x + dx + N) % N)];
+        cnt[y*N + x] = n;
+    }
+    return cnt;
+}
 function naiveStep(cur, rule) {
-    const cnt = naiveCounts(cur, rule.R);
+    const cnt = rule.circle ? naiveDiskCounts(cur, rule.R)
+                            : naiveCounts(cur, rule.R);
     const next = new Uint8Array(N*N);
     for (let i = 0; i < N*N; ++i) {
         const n = cnt[i];
@@ -112,12 +129,30 @@ async function run() {
         await tick();
     }
 
-    // 3. one full step vs naive, several rules (R=63 = max wrap: 2R+1 = N-1)
+    // 3. FFT disk counts vs naive disk counts (circle mode; R=1.5 is the
+    // Game-of-Life disk, R=60 is near the wrap limit)
+    sim.randomize(2);
+    const curC = toBits(sim.readAlive());
+    for (const R of [1.5, 7, 20, 60]) {
+        say(`running FFT disk counts (R=${R})…`, 'info');
+        await tick();
+        compare('FFT disk counts', sim.readCircleCounts(R),
+                naiveDiskCounts(curC, R), `R=${R}`);
+        await tick();
+    }
+
+    // 4. one full step vs naive, several rules (R=63 = max wrap: 2R+1 = N-1)
     const cases = [
         {R: 1,  b1: 3,    b2: 3,    s1: 3,    s2: 4,     name: 'Game of Life'},
         {R: 5,  b1: 34,   b2: 45,   s1: 34,   s2: 58,    name: "Bosco's rule"},
         {R: 10, b1: 123,  b2: 170,  s1: 123,  s2: 212,   name: 'Bugsmovie'},
         {R: 63, b1: 4000, b2: 8000, s1: 3500, s2: 12000, name: 'max radius'},
+        {R: 1.5, b1: 3,  b2: 3,   s1: 3,   s2: 4,   circle: true,
+         name: 'Game of Life (disk)'},
+        {R: 5,  b1: 23,  b2: 30,  s1: 23,  s2: 39,  circle: true,
+         name: "Bosco's rule (disk)"},
+        {R: 60, b1: 3800, b2: 7500, s1: 3300, s2: 11000, circle: true,
+         name: 'large disk'},
     ];
     for (const [i, c] of cases.entries()) {
         say(`running ${c.name} (R=${c.R})…`, 'info');
@@ -130,13 +165,16 @@ async function run() {
         await tick();
     }
 
-    // 4. 10 consecutive steps (catches state/SAT staleness between steps)
-    {
-        const rule = {R: 5, b1: 34, b2: 45, s1: 34, s2: 58};
+    // 5. 10 consecutive steps (catches state/SAT/spectrum staleness)
+    for (const rule of [
+            {R: 5, b1: 34, b2: 45, s1: 34, s2: 58, name: "Bosco's rule"},
+            {R: 5, b1: 23, b2: 30, s1: 23, s2: 39, circle: true,
+             name: "Bosco's rule (disk)"}]) {
         sim.randomize(7);
         let ref = toBits(sim.readAlive());
         for (let i = 0; i < 10; ++i) { sim.step(rule); ref = naiveStep(ref, rule); }
-        compare('10 consecutive steps', toBits(sim.readAlive()), ref, "Bosco's rule");
+        compare('10 consecutive steps', toBits(sim.readAlive()), ref, rule.name);
+        await tick();
     }
 
     const s = document.getElementById('summary');

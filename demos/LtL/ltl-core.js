@@ -7,6 +7,18 @@
 // rebuilt every step with log2(N) Hillis-Steele scan passes per axis; the
 // periodic (2R+1)^2 box sum is then 4-16 texel fetches per cell. The count
 // includes the cell itself (Evans' convention).
+//
+// Circle neighborhoods (rule.circle: cells with dx^2 + dy^2 <= R^2) can't
+// use the SAT trick, so they are counted in the Fourier domain instead:
+// the grid is periodic and N is a power of two, so the count is the
+// circular convolution IFFT(FFT(cells) * FFT(disk)) — a Stockham radix-2
+// FFT, log2(N) ping-pong passes per axis, with the disk spectrum cached
+// until R changes. Counts are exact integers, while the FFT is float32:
+// cells are loaded as +-0.5 so the spectrum's DC term (by far the largest
+// component, hence the largest absolute roundoff) stays small, and the
+// exact 0.5*diskArea is added back after the IFFT before rounding. The
+// residual error is orders of magnitude below the 0.5 rounding margin at
+// any sane setting (it only approaches ~1 count at R>256 on 8192^2 grids).
 
 // Periodic box sum via up to 4 SAT rectangles. Kept in fragment code (not
 // Inc): the helpers reference the `sat` sampler, which is only auto-declared
@@ -51,6 +63,33 @@ const BOXSUM_GLSL = `
         s %= SATM;                                // residues of the count
         return ((s.y - s.x + 2047) % 2047) * 2048 + s.x;
     }`;
+
+// Exact number of lattice cells with dx^2 + dy^2 <= R^2 (includes the
+// center) — the circle-mode analogue of (2R+1)^2. Also used by the UI for
+// slider ranges. Half-integer R is fine: R*R and the integer dx^2 + dy^2
+// are exact in both JS doubles and the kernel shader's float32.
+function diskArea(R) {
+    let a = 0;
+    for (let dy = -Math.floor(R); dy <= Math.floor(R); ++dy)
+        a += 2 * Math.floor(Math.sqrt(R*R - dy*dy)) + 1;
+    return a;
+}
+
+const CMUL_GLSL = `
+    vec2 cmul(vec2 a, vec2 b) {
+        return vec2(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x);
+    }`;
+
+// Rule application shared by the box and circle step shaders; expects the
+// neighbor count in `int cnt` and the target to be the state story texture.
+const RULE_GLSL = `
+    bool alive = Src(I).r > 0.5;
+    bool next = alive ? (cnt >= int(s1) && cnt <= int(s2))
+                      : (cnt >= int(b1) && cnt <= int(b2));
+    if (hash(ivec3(I, int(randomSeed))).x < noiseProbability)
+        next = hash(ivec3(I, int(randomSeed) + 1)).x < 0.5;
+    float trail = next ? 1.0 : max(Src(I).g * 0.96 - 0.002, 0.0);
+    FOut = vec4(next ? 1.0 : 0.0, trail, 0.0, 1.0);`;
 
 function makeLtL(glsl, N) {
     const state = glsl({}, {size: [N, N], format: 'rgba16f', story: 2, tag: 'state' + N});
@@ -110,9 +149,88 @@ function makeLtL(glsl, N) {
                 FOut = vec4(v, 0.0, 1.0);`}, sat);
     }
 
-    // rule = {R, b1, b2, s1, s2, noise}; noise replaces the rule result
-    // with an unbiased random state at the specified probability.
+    // ---- circle neighborhood via FFT (see header comment) ----
+    // Lazily allocated: the two rg32f complex textures cost as much memory
+    // as the SAT, so they only exist once circle mode is first used.
+    let freq = null, kernelF = null, kernelR = -1;
+
+    function ensureFFT() {
+        if (freq) return;
+        freq = glsl({}, {size: [N, N], format: 'rg32f', story: 2, tag: 'freq' + N});
+        kernelF = glsl({}, {size: [N, N], format: 'rg32f', tag: 'kfreq' + N});
+    }
+
+    // In-place 2D FFT of `freq`: one Stockham radix-2 pass per (axis, sub),
+    // self-sorting so no bit-reversal pass. Output index i takes inputs
+    // e = (i/s)*s/2 + i%(s/2) and e + N/2, twiddled by exp(dir*TAU*i*(i%s)/s).
+    // dir = -1 forward, +1 inverse (unscaled; the 1/N^2 lands on readout).
+    function fft(dir) {
+        for (let axis = 0; axis < 2; ++axis)
+            for (let sub = 2; sub <= N; sub <<= 1)
+                glsl({axis, sub, dir, FP: CMUL_GLSL + `
+                    void fragment() {
+                        int n = ViewSize.x, s = int(sub), h = s / 2;
+                        int i = int(axis) == 0 ? I.x : I.y;
+                        int e = (i / s) * h + i % h;
+                        ivec2 pe = int(axis) == 0 ? ivec2(e, I.y) : ivec2(I.x, e);
+                        ivec2 po = int(axis) == 0 ? ivec2(e + n/2, I.y) : ivec2(I.x, e + n/2);
+                        float ang = dir * TAU * float(i % s) / float(s);
+                        vec2 tw = vec2(cos(ang), sin(ang));
+                        FOut = vec4(Src(pe).xy + cmul(tw, Src(po).xy), 0.0, 1.0);
+                    }`}, freq);
+    }
+
+    // spectrum of the disk indicator dx^2 + dy^2 <= R^2, wrapped around the
+    // origin; cached until R (or the sim) changes
+    function buildKernel(R) {
+        glsl({R, FP: `
+            vec2 d = min(vec2(I), vec2(ViewSize) - vec2(I));
+            FOut = vec4(dot(d, d) <= R*R ? 1.0 : 0.0, 0.0, 0.0, 1.0);`}, freq);
+        fft(-1);
+        glsl({inp: freq[0], FP: 'inp(I)'}, kernelF);
+        kernelR = R;
+    }
+
+    // leaves conv(cells - 0.5, disk) in the real channel of freq[0];
+    // the true count is freq[0].x / N^2 + 0.5*diskArea(R)
+    function convolve(R) {
+        ensureFFT();
+        if (kernelR != R) buildKernel(R);
+        glsl({cells: state[0], FP: 'cells(I).r - 0.5, 0.0, 0.0, 1.0'}, freq);
+        fft(-1);
+        glsl({kern: kernelF, FP: CMUL_GLSL + `
+            void fragment() {
+                FOut = vec4(cmul(Src(I).xy, kern(I).xy), 0.0, 1.0);
+            }`}, freq);
+        fft(1);
+    }
+
+    function stepCircle(rule) {
+        convolve(rule.R);
+        glsl({conv: freq[0], invM: 1 / (N * N), halfA: 0.5 * diskArea(rule.R),
+              b1: rule.b1, b2: rule.b2, s1: rule.s1, s2: rule.s2,
+              noiseProbability: rule.noise == null ? 0 : rule.noise,
+              randomSeed: Math.floor(Math.random() * 1000000000),
+              FP: `
+            void fragment() {
+                int cnt = int(round(conv(I).x * invM + halfA));
+                ${RULE_GLSL}
+            }`}, state);
+    }
+
+    // circle-mode counts as a fresh Float32Array (for tests)
+    function readCircleCounts(R) {
+        convolve(R);
+        return glsl({conv: freq[0], invM: 1 / (N * N), halfA: 0.5 * diskArea(R),
+            FP: 'round(conv(I).x * invM + halfA), 0.0, 0.0, 1.0'},
+            {size: [N, N], format: 'r32f', tag: 'ccnt' + N}).readSync().slice();
+    }
+
+    // rule = {R, b1, b2, s1, s2, noise, circle}; noise replaces the rule
+    // result with an unbiased random state at the specified probability;
+    // circle switches the neighborhood from the (2R+1)^2 box to the disk.
     function step(rule) {
+        if (rule.circle) return stepCircle(rule);
         buildSAT();
         glsl({sat: sat[0], radius: rule.R,
               b1: rule.b1, b2: rule.b2, s1: rule.s1, s2: rule.s2,
@@ -121,13 +239,7 @@ function makeLtL(glsl, N) {
               FP: BOXSUM_GLSL + `
             void fragment() {
                 int cnt = boxSum(I, int(radius), ViewSize.x);
-                bool alive = Src(I).r > 0.5;
-                bool next = alive ? (cnt >= int(s1) && cnt <= int(s2))
-                                  : (cnt >= int(b1) && cnt <= int(b2));
-                if (hash(ivec3(I, int(randomSeed))).x < noiseProbability)
-                    next = hash(ivec3(I, int(randomSeed) + 1)).x < 0.5;
-                float trail = next ? 1.0 : max(Src(I).g * 0.96 - 0.002, 0.0);
-                FOut = vec4(next ? 1.0 : 0.0, trail, 0.0, 1.0);
+                ${RULE_GLSL}
             }`}, state);
     }
 
@@ -139,5 +251,6 @@ function makeLtL(glsl, N) {
             .readSync(...(box || [])).slice();
     }
 
-    return {N, state, sat, randomize, clear, buildSAT, step, readAlive};
+    return {N, state, sat, randomize, clear, buildSAT, step, readAlive,
+            readCircleCounts};
 }
