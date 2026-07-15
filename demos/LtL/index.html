@@ -132,8 +132,9 @@
         custom rule to the new neighborhood area.
         Drag: left = draw, right = erase.
         Ctrl+drag: select a region and save it as a creature file (zero
-        borders trimmed). After loading: click to paste, Esc / right-click to
-        stop. Wheel: zoom. Shift+drag or middle-drag: pan.
+        borders trimmed). Load or drop a creature JSON onto the canvas, then
+        click to paste; Esc / right-click stops. Wheel: zoom. Shift+drag or
+        middle-drag: pan.
         G: toggle grid lines.</div>
 </div>
 <script>
@@ -467,7 +468,23 @@ $('load').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', async () => {
     const f = $('file').files[0];
     $('file').value = '';
-    if (!f) return;
+    if (f) await loadCreature(f);
+});
+
+// Keep dropped creatures on the same preview-before-paste path as files
+// selected with the button.  In particular, loading never stamps the grid.
+canvas.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+});
+canvas.addEventListener('drop', async e => {
+    e.preventDefault();
+    setPointer(e);                         // show the ghost at the drop point
+    const f = e.dataTransfer.files[0];
+    if (f) await loadCreature(f);
+});
+
+async function loadCreature(f) {
     try {
         const c = JSON.parse(await f.text());
         const rows = c.cells;
@@ -484,7 +501,7 @@ $('file').addEventListener('change', async () => {
     } catch (err) {
         alert('Could not load creature: ' + err.message);
     }
-});
+}
 function stopPasting() {
     pasting = false;
     $('load').textContent = 'Load creature…';
