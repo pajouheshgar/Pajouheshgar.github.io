@@ -97,6 +97,9 @@
     <div class="row"><label>noise</label>
         <input type="range" id="noise" min="0" max="0.1" step="0.001" value="0">
         <input type="number" class="val" id="noisev" min="0" max="0.1" step="0.001" value="0"></div>
+    <div class="row"><label>noise bias</label>
+        <input type="range" id="noiseBias" min="0" max="1" step="0.01" value="0.5">
+        <span class="val" id="noiseBiasv">0.5</span></div>
     <div class="row"><label>soup</label>
         <select id="soupType" style="flex:1">
             <option value="perlin" selected>perlin blobs</option>
@@ -150,10 +153,11 @@ let stepCount = 0, stepAcc = 0;   // stepAcc carries fractional steps/frame
 // ---- parameters / UI ----
 // speed is the log2 of steps-per-frame: -3 => 1 step every 8 frames;
 // density is the alive probability when seeding a random soup;
-// noise is the chance that a rule result is replaced by a random 0 or 1;
+// noise is the chance that a rule result is replaced; noiseBias is the
+// probability that a replacement is 1 (0 = always 0, 1 = always 1);
 // noiseFreq is the perlin lattice size across the grid (lower = bigger blobs)
 const P = {R: 5, b1: 34, b2: 45, s1: 34, s2: 58, speed: 0, brush: 12,
-           density: 0.5, noise: 0, noiseFreq: 50};
+           density: 0.5, noise: 0, noiseBias: 0.5, noiseFreq: 50};
 const PRESETS = {
     bosco:     {R: 5,  b1: 34,  b2: 45,  s1: 34,  s2: 58},
     life:      {R: 1,  b1: 3,   b2: 3,   s1: 3,   s2: 4},

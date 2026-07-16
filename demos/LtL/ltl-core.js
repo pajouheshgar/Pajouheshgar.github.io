@@ -87,7 +87,7 @@ const RULE_GLSL = `
     bool next = alive ? (cnt >= int(s1) && cnt <= int(s2))
                       : (cnt >= int(b1) && cnt <= int(b2));
     if (hash(ivec3(I, int(randomSeed))).x < noiseProbability)
-        next = hash(ivec3(I, int(randomSeed) + 1)).x < 0.5;
+        next = hash(ivec3(I, int(randomSeed) + 1)).x < noiseBias;
     float trail = next ? 1.0 : max(Src(I).g * 0.96 - 0.002, 0.0);
     FOut = vec4(next ? 1.0 : 0.0, trail, 0.0, 1.0);`;
 
@@ -210,6 +210,7 @@ function makeLtL(glsl, N) {
         glsl({conv: freq[0], invM: 1 / (N * N), halfA: 0.5 * diskArea(rule.R),
               b1: rule.b1, b2: rule.b2, s1: rule.s1, s2: rule.s2,
               noiseProbability: rule.noise == null ? 0 : rule.noise,
+              noiseBias: rule.noiseBias == null ? 0.5 : rule.noiseBias,
               randomSeed: Math.floor(Math.random() * 1000000000),
               FP: `
             void fragment() {
@@ -226,8 +227,9 @@ function makeLtL(glsl, N) {
             {size: [N, N], format: 'r32f', tag: 'ccnt' + N}).readSync().slice();
     }
 
-    // rule = {R, b1, b2, s1, s2, noise, circle}; noise replaces the rule
-    // result with an unbiased random state at the specified probability;
+    // rule = {R, b1, b2, s1, s2, noise, noiseBias, circle}; noise replaces
+    // the rule result at the specified probability; noiseBias is the chance
+    // that its replacement state is alive (defaults to an unbiased 0.5).
     // circle switches the neighborhood from the (2R+1)^2 box to the disk.
     function step(rule) {
         if (rule.circle) return stepCircle(rule);
@@ -235,6 +237,7 @@ function makeLtL(glsl, N) {
         glsl({sat: sat[0], radius: rule.R,
               b1: rule.b1, b2: rule.b2, s1: rule.s1, s2: rule.s2,
               noiseProbability: rule.noise == null ? 0 : rule.noise,
+              noiseBias: rule.noiseBias == null ? 0.5 : rule.noiseBias,
               randomSeed: Math.floor(Math.random() * 1000000000),
               FP: BOXSUM_GLSL + `
             void fragment() {
